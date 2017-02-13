@@ -1,4 +1,4 @@
-package PushoverBrokerRESTAPITest
+package pushoverbroker_test
 
 import (
 	"testing"
