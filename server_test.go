@@ -2,11 +2,12 @@ package pushoverbroker_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"testing"
+
+	"log"
 
 	"github.com/martinjansa/pushoverbroker"
 )
@@ -53,13 +54,11 @@ func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 	// **** WHEN ****
 
 	//a json POST request is sent via the REST API
-	testMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	jsonData, err := json.Marshal(testMessage)
-	if err != nil {
-		panic(err)
-	}
+	expectedMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
+	sentMessage := []byte("{ \"token\": \"<dummy token>\", \"user\": \"<dummy user>\", \"message\": \"\" }")
+	log.Print(string(sentMessage))
 	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(sentMessage))
 	if err != nil {
 		panic(err)
 	}
@@ -85,5 +84,5 @@ func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 	t.Logf("POST request response body '%s'.", string(body))
 
 	// the right message shoud be delivered to the mock
-	messageHandlerMock.AssertMessageAcceptedOnce(t, testMessage)
+	messageHandlerMock.AssertMessageAcceptedOnce(t, expectedMessage)
 }
