@@ -1,14 +1,15 @@
 package pushoverbroker
 
 import (
-	"fmt"
+	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 )
 
 // IncommingPushNotificationMessageHandler handles message accepted by the REST API
 type IncommingPushNotificationMessageHandler interface {
-	HandleMessage(message PushNotification)
+	HandleMessage(message PushNotification) error
 }
 
 // Server is the REST API server that handles the clients connections
@@ -49,5 +50,25 @@ type Post1MessageJSONHTTPHandler struct {
 
 // handles the incomming request and forwards it to the message handler
 func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Not implemented")
+
+	// parse the JSON
+	decoder := json.NewDecoder(r.Body)
+	var pn PushNotification
+	err := decoder.Decode(&pn)
+	if err != nil {
+		panic(err)
+	}
+	defer r.Body.Close()
+	log.Println(pn)
+
+	// handle the message
+	err = h.messageHandler.HandleMessage(pn)
+	if err != nil {
+		// report the error
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+	}
+
+	// succeeded response
+	w.WriteHeader(200)
 }
