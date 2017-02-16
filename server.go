@@ -1,20 +1,12 @@
-package server
+package pushoverbroker
 
-import "github.com/go-martini/martini"
-
-// Message represents a message with json request that is passed to the REST API
-type Message struct {
-	Request string
-}
-
-// GetRequest  returns the request from the message
-func (m *Message) GetRequest() string {
-	return m.Request
-}
+import (
+	"github.com/go-martini/martini"
+)
 
 // MessageHandler handles message accepted by the REST API
 type MessageHandler interface {
-	HandleMessage(message Message)
+	HandleMessage(message PushNotification)
 }
 
 // Server is the REST API server.

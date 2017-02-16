@@ -5,59 +5,54 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/martinjansa/pushoverbroker"
 )
 
-// implements the pushoverconnector.PushoverConnector interface
-type PushoverConnectorMock struct {
-	response            error
+// implements the server.MessageHadler interface
+type MessageHandlerMock struct {
 	handleMessageCalled int
 	notification        pushoverbroker.PushNotification
 }
 
-// NewPushoverConnectorMock initializes the mock
-func NewPushoverConnectorMock() *PushoverConnectorMock {
-	pcm := new(PushoverConnectorMock)
-	pcm.response = nil
-	pcm.handleMessageCalled = 0
-	return pcm
+// NewMessageHandlerMock initializes the mock
+func NewMessageHandlerMock() *MessageHandlerMock {
+	mh := new(MessageHandlerMock)
+	mh.handleMessageCalled = 0
+	return mh
 }
 
-func (pcm *PushoverConnectorMock) PostPushNotificationMessage(message pushoverbroker.PushNotification) error {
-	pcm.handleMessageCalled++
-	pcm.notification = message
-	return pcm.response
+func (mh *MessageHandlerMock) HandleMessage(message pushoverbroker.PushNotification) {
+	mh.handleMessageCalled++
+	mh.notification = message
 }
 
-func (pcm *PushoverConnectorMock) AssertMessageAcceptedOnce(t *testing.T, message pushoverbroker.PushNotification) {
-	if pcm.handleMessageCalled != 1 {
-		t.Errorf("1 message expected, %d received.", pcm.handleMessageCalled)
+func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message pushoverbroker.PushNotification) {
+	if mh.handleMessageCalled != 1 {
+		t.Errorf("1 message expected, %d received.", mh.handleMessageCalled)
 	}
-	if pcm.notification != message {
+	if mh.notification != message {
 		t.Error("The received push notification does not match the expected value.")
 	}
 }
 
-// TestShouldForwardEmptyMessage is a test function for the REST API call
-func TestShouldForwardEmptyMessage(t *testing.T) {
+// TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
+func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
-	pcm := NewPushoverConnectorMock()
-	broker := pushoverbroker.NewPushoverBroker(pcm)
-
-	port := 8500
-	go broker.Run(port)
+	messageHandlerMock := NewMessageHandlerMock()
+	brokerServer := pushoverbroker.NewServer(messageHandlerMock)
+	testMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
+	portStr := "8501"
+	go brokerServer.Martini.RunOnAddr(":" + portStr)
 
 	// **** WHEN ****
 
 	//a json POST request is sent via the REST API
-	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
-	testMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
+	url := "http://localhost:" + portStr + "/1/messages.json"
 	jsonData, err := json.Marshal(testMessage)
 	if err != nil {
 		panic(err)
@@ -71,7 +66,6 @@ func TestShouldForwardEmptyMessage(t *testing.T) {
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Errorf("POST request failed with error %s.", err)
-		return
 	}
 	defer resp.Body.Close()
 
@@ -85,5 +79,5 @@ func TestShouldForwardEmptyMessage(t *testing.T) {
 	t.Logf("POST request response body '%s'.", string(body))
 
 	// the right message shoud be delivered to the mock
-	pcm.AssertMessageAcceptedOnce(t, testMessage)
+	messageHandlerMock.AssertMessageAcceptedOnce(t, testMessage)
 }
