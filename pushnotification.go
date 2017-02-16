@@ -1,5 +1,9 @@
 package pushoverbroker
 
+import (
+	"fmt"
+)
+
 // PushNotification represents a message with json request that is passed to the REST API
 type PushNotification struct {
 	Token   string
@@ -20,4 +24,9 @@ func (m *PushNotification) GetUser() string {
 // GetMessage returns the message content from the push notification
 func (m *PushNotification) GetMessage() string {
 	return m.Message
+}
+
+// DumpToString converts the PushNotification to string
+func (m *PushNotification) DumpToString() string {
+	return fmt.Sprintf("token=\"%s\", user=\"%s\", message=\"%s\"", m.GetToken(), m.GetUser(), m.GetMessage())
 }

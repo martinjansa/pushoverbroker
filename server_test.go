@@ -41,12 +41,11 @@ func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message pu
 }
 
 // TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
-func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
+func Impl_TestServerShouldAcceptPOST1MessagesJson(t *testing.T, port int, message string) {
 
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
-	port := 8501
 	messageHandlerMock := NewMessageHandlerMock()
 	brokerServer := pushoverbroker.NewServer(port, messageHandlerMock)
 	go brokerServer.Run()
@@ -54,9 +53,9 @@ func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 	// **** WHEN ****
 
 	//a json POST request is sent via the REST API
-	expectedMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	sentMessage := []byte("{ \"token\": \"<dummy token>\", \"user\": \"<dummy user>\", \"message\": \"\" }")
-	log.Print(string(sentMessage))
+	expectedMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: message}
+	sentMessage := []byte("{ \"token\": \"<dummy token>\", \"user\": \"<dummy user>\", \"message\": \"" + message + "\" }")
+	log.Printf("Sending POST to /1/messages.json with content %s.", string(sentMessage))
 	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(sentMessage))
 	if err != nil {
@@ -85,4 +84,16 @@ func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 
 	// the right message shoud be delivered to the mock
 	messageHandlerMock.AssertMessageAcceptedOnce(t, expectedMessage)
+}
+
+// TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
+func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
+
+	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8501, "")
+}
+
+// TestServerShouldAcceptPOST1MessagesJsonWithMessage is a test function for the REST API call
+func TestServerShouldAcceptPOST1MessagesJsonWithMessage(t *testing.T) {
+
+	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8502, "<dummy message>")
 }

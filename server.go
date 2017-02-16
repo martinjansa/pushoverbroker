@@ -59,7 +59,9 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		panic(err)
 	}
 	defer r.Body.Close()
-	log.Println(pn)
+
+	// log the accepted message
+	log.Printf("Received request with %s.", pn.DumpToString())
 
 	// handle the message
 	err = h.messageHandler.HandleMessage(pn)
