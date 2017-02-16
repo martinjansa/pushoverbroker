@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"testing"
 
 	"github.com/martinjansa/pushoverbroker"
 )
 
-// implements the server.MessageHadler interface
+// implements the IncommingPushNotificationMessageHandler interface
 type MessageHandlerMock struct {
 	handleMessageCalled int
 	notification        pushoverbroker.PushNotification
@@ -43,21 +44,24 @@ func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
+	port := 8501
 	messageHandlerMock := NewMessageHandlerMock()
-	brokerServer := pushoverbroker.NewServer(messageHandlerMock)
-	testMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	portStr := "8501"
-	go brokerServer.Martini.RunOnAddr(":" + portStr)
+	brokerServer := pushoverbroker.NewServer(port, messageHandlerMock)
+	go brokerServer.Run()
 
 	// **** WHEN ****
 
 	//a json POST request is sent via the REST API
-	url := "http://localhost:" + portStr + "/1/messages.json"
+	testMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
 	jsonData, err := json.Marshal(testMessage)
 	if err != nil {
 		panic(err)
 	}
+	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		panic(err)
+	}
 	//req.Header.Set("X-Custom-Header", "myvalue")
 	//req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -66,6 +70,7 @@ func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Errorf("POST request failed with error %s.", err)
+		return
 	}
 	defer resp.Body.Close()
 
