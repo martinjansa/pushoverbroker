@@ -15,6 +15,7 @@ func TestShouldSendMessageToPushoverConnector(t *testing.T) {
 	pcm := pushoverbroker.NewPushoverConnectorMock()
 	processor := pushoverbroker.NewPushoverProcessor(pcm)
 
+	// start the processor
 	go processor.Run()
 
 	// **** WHEN ****
