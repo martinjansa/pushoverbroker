@@ -89,11 +89,11 @@ func Impl_TestServerShouldAcceptPOST1MessagesJson(t *testing.T, port int, messag
 // TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 
-	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8501, "")
+	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8502, "")
 }
 
 // TestServerShouldAcceptPOST1MessagesJsonWithMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithMessage(t *testing.T) {
 
-	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8502, "<dummy message>")
+	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8503, "<dummy message>")
 }

@@ -13,7 +13,7 @@ func TestShouldSendMessageToPushoverConnector(t *testing.T) {
 
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := pushoverbroker.NewPushoverConnectorMock()
-	processor := pushoverbroker.NewPushoverProcessor(pcm)
+	processor := pushoverbroker.NewProcessor(pcm)
 
 	// start the processor
 	go processor.Run()

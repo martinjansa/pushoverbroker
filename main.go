@@ -5,6 +5,6 @@ package pushoverbroker
 //)
 
 func main() {
-	broker := NewPushoverBroker(nil)
-	broker.Run(8500)
+	broker := NewPushoverBroker(8500, nil)
+	broker.Run()
 }

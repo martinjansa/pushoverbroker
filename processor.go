@@ -7,8 +7,8 @@ type Processor struct {
 	PushoverConnector PushoverConnector
 }
 
-// NewPushoverProcessor creates a new instance of the Processor
-func NewPushoverProcessor(pushoverConnector PushoverConnector) *Processor {
+// NewProcessor creates a new instance of the Processor
+func NewProcessor(pushoverConnector PushoverConnector) *Processor {
 	p := new(Processor)
 	p.PushoverConnector = pushoverConnector
 
@@ -24,5 +24,5 @@ func (p *Processor) HandleMessage(message PushNotification) error {
 
 // Run starts the message processing loop
 func (p *Processor) Run() {
-	log.Fatal("Not implemented")
+	log.Print("Not Process::Run has not been implemented yet")
 }
