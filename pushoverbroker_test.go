@@ -11,43 +11,13 @@ import (
 	"github.com/martinjansa/pushoverbroker"
 )
 
-// implements the pushoverconnector.PushoverConnector interface
-type PushoverConnectorMock struct {
-	response            error
-	handleMessageCalled int
-	notification        pushoverbroker.PushNotification
-}
-
-// NewPushoverConnectorMock initializes the mock
-func NewPushoverConnectorMock() *PushoverConnectorMock {
-	pcm := new(PushoverConnectorMock)
-	pcm.response = nil
-	pcm.handleMessageCalled = 0
-	return pcm
-}
-
-func (pcm *PushoverConnectorMock) PostPushNotificationMessage(message pushoverbroker.PushNotification) error {
-	pcm.handleMessageCalled++
-	pcm.notification = message
-	return pcm.response
-}
-
-func (pcm *PushoverConnectorMock) AssertMessageAcceptedOnce(t *testing.T, message pushoverbroker.PushNotification) {
-	if pcm.handleMessageCalled != 1 {
-		t.Errorf("1 message expected, %d received.", pcm.handleMessageCalled)
-	}
-	if pcm.notification != message {
-		t.Error("The received push notification does not match the expected value.")
-	}
-}
-
 // TestShouldForwardEmptyMessage is a test function for the REST API call
 func TestShouldForwardEmptyMessage(t *testing.T) {
 
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
-	pcm := NewPushoverConnectorMock()
+	pcm := pushoverbroker.NewPushoverConnectorMock()
 	broker := pushoverbroker.NewPushoverBroker(pcm)
 
 	port := 8500
