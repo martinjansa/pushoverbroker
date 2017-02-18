@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -51,26 +50,28 @@ type Post1MessageJSONHTTPHandler struct {
 // handles the incomming request and forwards it to the message handler
 func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	// parse the JSON
-	decoder := json.NewDecoder(r.Body)
-	var pn PushNotification
-	err := decoder.Decode(&pn)
-	if err != nil {
-		panic(err)
-	}
-	defer r.Body.Close()
+	log.Printf("Received request.")
+	/*
+		// parse the JSON
+		decoder := json.NewDecoder(r.Body)
+		var pn PushNotification
+		err := decoder.Decode(&pn)
+		if err != nil {
+			panic(err)
+		}
+		defer r.Body.Close()
 
-	// log the accepted message
-	log.Printf("Received request with %s.", pn.DumpToString())
+		// log the accepted message
+		log.Printf("Received request with %s.", pn.DumpToString())
 
-	// handle the message
-	err = h.messageHandler.HandleMessage(pn)
-	if err != nil {
-		// report the error
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
-	}
-
+		// handle the message
+		err = h.messageHandler.HandleMessage(pn)
+		if err != nil {
+			// report the error
+			w.WriteHeader(500)
+			w.Write([]byte(err.Error()))
+		}
+	*/
 	// succeeded response
 	w.WriteHeader(200)
 }

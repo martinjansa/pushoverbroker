@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"testing"
 )
@@ -23,18 +23,23 @@ func TestShouldForwardEmptyMessage(t *testing.T) {
 
 	// **** WHEN ****
 
-	//a json POST request is sent via the REST API
-	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
-	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	jsonData, err := json.Marshal(testMessage)
-	if err != nil {
-		panic(err)
-	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	//req.Header.Set("X-Custom-Header", "myvalue")
-	//req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// prepare the test message
+	expectedMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
 
+	// encode message into the URL form values
+	form := url.Values{}
+	form.Set("token", "<dummy token>")
+	form.Set("user", "<dummy user>")
+	form.Set("message", "")
+	formStr := form.Encode()
+
+	// Prepare the POST request with form data
+	urlStr := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
+
+	// port the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -53,5 +58,5 @@ func TestShouldForwardEmptyMessage(t *testing.T) {
 	t.Logf("POST request response body '%s'.", string(body))
 
 	// the right message shoud be delivered to the mock
-	pcm.AssertMessageAcceptedOnce(t, testMessage)
+	pcm.AssertMessageAcceptedOnce(t, expectedMessage)
 }

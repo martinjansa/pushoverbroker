@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strconv"
 	"testing"
-
-	"log"
 )
 
 // implements the IncommingPushNotificationMessageHandler interface
@@ -52,17 +51,21 @@ func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message
 
 	//a json POST request is sent via the REST API
 	expectedMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: message}
-	sentMessage := []byte("{ \"token\": \"<dummy token>\", \"user\": \"<dummy user>\", \"message\": \"" + message + "\" }")
-	log.Printf("Sending POST to /1/messages.json with content %s.", string(sentMessage))
-	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(sentMessage))
-	if err != nil {
-		panic(err)
-	}
-	//req.Header.Set("X-Custom-Header", "myvalue")
-	//req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	// encode message into the URL form values
+	form := url.Values{}
+	form.Set("token", "<dummy token>")
+	form.Set("user", "<dummy user>")
+	form.Set("message", message)
+	formStr := form.Encode()
+
+	// Prepare the POST request with form data
+	urlStr := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
+
+	// port the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
