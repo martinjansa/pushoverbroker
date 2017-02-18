@@ -61,6 +61,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	// parse the form
 	err := r.ParseForm()
 	if err != nil {
+		log.Printf("POST form parsing failed with error %s.", err.Error())
 		panic(err)
 	}
 
@@ -68,6 +69,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	var pn PushNotification
 	err = h.decoder.Decode(&pn, r.PostForm)
 	if err != nil {
+		log.Printf("POST form decoding failed with error %s.", err.Error())
 		panic(err)
 	}
 	//defer r.Body.Close()
@@ -79,6 +81,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	err = h.messageHandler.HandleMessage(pn)
 	if err != nil {
 		// report the error
+		log.Printf("Handling of the message %s failed with error %s. Returning HTTP 500.", pn.DumpToString(), err.Error())
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
