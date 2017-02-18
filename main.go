@@ -5,6 +5,7 @@ package main
 //)
 
 func main() {
-	broker := NewPushoverBroker(8499, nil)
+	pushoverConnector := NewPushoverConnector()
+	broker := NewPushoverBroker(8499, pushoverConnector)
 	broker.Run()
 }

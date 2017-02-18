@@ -6,9 +6,9 @@ import (
 
 // PushNotification represents a message with json request that is passed to the REST API
 type PushNotification struct {
-	Token   string
-	User    string
-	Message string
+	Token   string `json:"token" schema:"token"`
+	User    string `json:"user"  schema:"user"`
+	Message string `json:"message" schema:"message"`
 }
 
 // GetToken returns the API token from the push notification.

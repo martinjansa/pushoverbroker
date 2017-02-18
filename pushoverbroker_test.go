@@ -15,7 +15,7 @@ func TestShouldForwardEmptyMessage(t *testing.T) {
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
-	pcm := NewPushoverConnectorMock()
+	pcm := NewPushNotificationsSenderMock()
 	port := 8501
 	broker := NewPushoverBroker(port, pcm)
 

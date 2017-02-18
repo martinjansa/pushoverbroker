@@ -1,20 +1,20 @@
 package main
 
 // PushoverBroker represents the main class constructing the Pushover broker. It initializes the REST API server, processing logc & database.
-// Depends on the PushoverConnector interface
+// Depends on the PushNotificationsSender interface
 type PushoverBroker struct {
 	server            *Server
 	processor         *Processor
-	pushoverConnector PushoverConnector
+	PushNotificationsSender PushNotificationsSender
 }
 
 // NewPushoverBroker creates an instance of the PushoverBroker
-func NewPushoverBroker(port int, pushoverConnector PushoverConnector) *PushoverBroker {
+func NewPushoverBroker(port int, PushNotificationsSender PushNotificationsSender) *PushoverBroker {
 	pb := new(PushoverBroker)
-	pb.pushoverConnector = pushoverConnector
+	pb.PushNotificationsSender = PushNotificationsSender
 
 	// create new message processor
-	pb.processor = NewProcessor(pushoverConnector)
+	pb.processor = NewProcessor(PushNotificationsSender)
 
 	// create new HTTP server
 	pb.server = NewServer(port, pb.processor)

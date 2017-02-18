@@ -2,13 +2,13 @@ package main
 
 import "testing"
 
-// TestShouldSendMessageToPushoverConnector tests whether the processor attempts to send all the incomming messages to Pushover connector
-func TestShouldSendMessageToPushoverConnector(t *testing.T) {
+// TestShouldSendMessageToPushNotificationsSender tests whether the processor attempts to send all the incomming messages to Pushover connector
+func TestShouldSendMessageToPushNotificationsSender(t *testing.T) {
 
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
-	pcm := NewPushoverConnectorMock()
+	pcm := NewPushNotificationsSenderMock()
 	processor := NewProcessor(pcm)
 
 	// start the processor

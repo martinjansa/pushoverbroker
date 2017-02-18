@@ -4,13 +4,13 @@ import "log"
 
 // Processor handles the incomming messages, is responsible for the queing, persinstence and repeated attempts to deliver
 type Processor struct {
-	PushoverConnector PushoverConnector
+	PushNotificationsSender PushNotificationsSender
 }
 
 // NewProcessor creates a new instance of the Processor
-func NewProcessor(pushoverConnector PushoverConnector) *Processor {
+func NewProcessor(PushNotificationsSender PushNotificationsSender) *Processor {
 	p := new(Processor)
-	p.PushoverConnector = pushoverConnector
+	p.PushNotificationsSender = PushNotificationsSender
 
 	return p
 }
@@ -19,7 +19,7 @@ func NewProcessor(pushoverConnector PushoverConnector) *Processor {
 func (p *Processor) HandleMessage(message PushNotification) error {
 
 	// simple forward of the received message to the Pushover connector and return the result
-	return p.PushoverConnector.PostPushNotificationMessage(message)
+	return p.PushNotificationsSender.PostPushNotificationMessage(message)
 }
 
 // Run starts the message processing loop
