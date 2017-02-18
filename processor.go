@@ -1,4 +1,4 @@
-package pushoverbroker
+package main
 
 import "log"
 

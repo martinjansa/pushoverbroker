@@ -1,10 +1,6 @@
-package pushoverbroker_test
+package main
 
-import (
-	"testing"
-
-	"github.com/martinjansa/pushoverbroker"
-)
+import "testing"
 
 // TestShouldSendMessageToPushoverConnector tests whether the processor attempts to send all the incomming messages to Pushover connector
 func TestShouldSendMessageToPushoverConnector(t *testing.T) {
@@ -12,8 +8,8 @@ func TestShouldSendMessageToPushoverConnector(t *testing.T) {
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
-	pcm := pushoverbroker.NewPushoverConnectorMock()
-	processor := pushoverbroker.NewProcessor(pcm)
+	pcm := NewPushoverConnectorMock()
+	processor := NewProcessor(pcm)
 
 	// start the processor
 	go processor.Run()
@@ -21,7 +17,7 @@ func TestShouldSendMessageToPushoverConnector(t *testing.T) {
 	// **** WHEN ****
 
 	// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
-	testMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
+	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
 	err := processor.HandleMessage(testMessage)
 
 	// **** THEN ****

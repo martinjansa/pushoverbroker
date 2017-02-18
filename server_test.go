@@ -1,4 +1,4 @@
-package pushoverbroker_test
+package main
 
 import (
 	"bytes"
@@ -8,14 +8,12 @@ import (
 	"testing"
 
 	"log"
-
-	"github.com/martinjansa/pushoverbroker"
 )
 
 // implements the IncommingPushNotificationMessageHandler interface
 type MessageHandlerMock struct {
 	handleMessageCalled int
-	notification        pushoverbroker.PushNotification
+	notification        PushNotification
 }
 
 // NewMessageHandlerMock initializes the mock
@@ -25,13 +23,13 @@ func NewMessageHandlerMock() *MessageHandlerMock {
 	return mh
 }
 
-func (mh *MessageHandlerMock) HandleMessage(message pushoverbroker.PushNotification) error {
+func (mh *MessageHandlerMock) HandleMessage(message PushNotification) error {
 	mh.handleMessageCalled++
 	mh.notification = message
 	return nil
 }
 
-func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message pushoverbroker.PushNotification) {
+func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message PushNotification) {
 	if mh.handleMessageCalled != 1 {
 		t.Errorf("1 message expected, %d received.", mh.handleMessageCalled)
 	}
@@ -41,19 +39,19 @@ func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message pu
 }
 
 // TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
-func Impl_TestServerShouldAcceptPOST1MessagesJson(t *testing.T, port int, message string) {
+func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message string) {
 
 	// **** GIVEN ****
 
 	// The REST API server is initialized and connected to the message handler mock
 	messageHandlerMock := NewMessageHandlerMock()
-	brokerServer := pushoverbroker.NewServer(port, messageHandlerMock)
+	brokerServer := NewServer(port, messageHandlerMock)
 	go brokerServer.Run()
 
 	// **** WHEN ****
 
 	//a json POST request is sent via the REST API
-	expectedMessage := pushoverbroker.PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: message}
+	expectedMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: message}
 	sentMessage := []byte("{ \"token\": \"<dummy token>\", \"user\": \"<dummy user>\", \"message\": \"" + message + "\" }")
 	log.Printf("Sending POST to /1/messages.json with content %s.", string(sentMessage))
 	url := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
@@ -89,11 +87,11 @@ func Impl_TestServerShouldAcceptPOST1MessagesJson(t *testing.T, port int, messag
 // TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 
-	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8502, "")
+	ImplTestServerShouldAcceptPOST1MessagesJSON(t, 8502, "")
 }
 
 // TestServerShouldAcceptPOST1MessagesJsonWithMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithMessage(t *testing.T) {
 
-	Impl_TestServerShouldAcceptPOST1MessagesJson(t, 8503, "<dummy message>")
+	ImplTestServerShouldAcceptPOST1MessagesJSON(t, 8503, "<dummy message>")
 }

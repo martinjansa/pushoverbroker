@@ -1,10 +1,10 @@
-package pushoverbroker
+package main
 
 //import (
 //	"github.com/martinjansa/pushoverbroker"
 //)
 
 func main() {
-	broker := NewPushoverBroker(8500, nil)
+	broker := NewPushoverBroker(8499, nil)
 	broker.Run()
 }

@@ -1,4 +1,4 @@
-package pushoverbroker
+package main
 
 // PushoverConnector represents the connector to the Pushover API
 type PushoverConnector interface {

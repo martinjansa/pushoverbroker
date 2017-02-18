@@ -1,4 +1,4 @@
-package pushoverbroker
+package main
 
 // PushoverBroker represents the main class constructing the Pushover broker. It initializes the REST API server, processing logc & database.
 // Depends on the PushoverConnector interface
@@ -23,7 +23,7 @@ func NewPushoverBroker(port int, pushoverConnector PushoverConnector) *PushoverB
 
 // Run starts the server
 func (pb *PushoverBroker) Run() error {
-	go pb.server.Run()
-	go pb.processor.Run()
+	pb.processor.Run()
+	pb.server.Run()
 	return nil
 }
