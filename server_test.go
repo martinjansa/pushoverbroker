@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"strconv"
 	"testing"
 )
@@ -37,14 +40,18 @@ func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message Pu
 	}
 }
 
-// TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
-func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message string) {
+// ImplTestServerShouldAcceptTLSPOST1MessagesJSON is a test function for the REST API call
+func ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t *testing.T, port int, message string) {
 
 	// **** GIVEN ****
 
+	// get the certificate files path
+	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.cert.pem")
+	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key.pem")
+
 	// The REST API server is initialized and connected to the message handler mock
 	messageHandlerMock := NewMessageHandlerMock()
-	brokerServer := NewServer(port, messageHandlerMock)
+	brokerServer := NewServer(port, certFilePath, keyFilePath, messageHandlerMock)
 	go brokerServer.Run()
 
 	// **** WHEN ****
@@ -60,13 +67,17 @@ func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message
 	formStr := form.Encode()
 
 	// Prepare the POST request with form data
-	urlStr := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+	urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
 	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
 
-	// port the request
-	client := &http.Client{}
+	// initialize the client that does not check the certificates (for testing purposes only)
+	tlsConfig := tls.Config{InsecureSkipVerify: true}
+	transport := &http.Transport{TLSClientConfig: &tlsConfig}
+	client := &http.Client{Transport: transport}
+
+	// post the request
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Errorf("POST request failed with error %s.", err)
@@ -90,11 +101,11 @@ func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message
 // TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 
-	ImplTestServerShouldAcceptPOST1MessagesJSON(t, 8502, "")
+	ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t, 8502, "")
 }
 
 // TestServerShouldAcceptPOST1MessagesJsonWithMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithMessage(t *testing.T) {
 
-	ImplTestServerShouldAcceptPOST1MessagesJSON(t, 8503, "<dummy message>")
+	ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t, 8503, "<dummy message>")
 }
