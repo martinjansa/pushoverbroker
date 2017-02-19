@@ -61,21 +61,17 @@ type Post1MessageJSONHTTPHandler struct {
 // handles the incomming request and forwards it to the message handler
 func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	log.Printf("Received request.")
-
 	// parse the form
 	err := r.ParseForm()
 	if err != nil {
-		log.Printf("POST form parsing failed with error %s.", err.Error())
-		panic(err)
+		log.Panicf("POST form parsing failed with error %s.", err.Error())
 	}
 
 	// decode the POST form
 	var pn PushNotification
 	err = h.decoder.Decode(&pn, r.PostForm)
 	if err != nil {
-		log.Printf("POST form decoding failed with error %s.", err.Error())
-		panic(err)
+		log.Panicf("POST form decoding failed with error %s.", err.Error())
 	}
 	//defer r.Body.Close()
 
