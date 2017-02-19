@@ -5,15 +5,16 @@ if [ ! -d ../private ]; then
 	mkdir ../private
 fi
 
-# construct the generation command
-cmd='openssl req -new -nodes -x509 -out ../private/server.pem -keyout ../private/server.key -days 365'
+# file paths
+config=../private/certificate.config
+server_cert=../private/server.cert.pem
+server_key=../private/server.key.pem
 
-# if the configutation file exist
-if [ -f ../private/certificate.conf ]; then
+#if the configutation file exist
+if [ -f $config ]; then
 	echo generating the server certificate using the private configuration...
-	$cmd < ../private/certificate.conf
+	openssl req -new -nodes -x509 -out $server_cert -keyout $server_key -days 365' < $config
 else
 	echo generating the server certificate using the user input...
-	$cmd
+	openssl req -new -nodes -x509 -out $server_cert -keyout $server_key -days 365'
 fi
-

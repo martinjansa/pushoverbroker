@@ -6,6 +6,13 @@ The goal of this project is to provide a reliable service of delivering the push
 
 The Pushover Broker is designed to run locally on your device and offer your client code application the same interface as the original Pushover API, but in addition to that make sure that 100% of the push notification messages are always delivered.
 
+## Usage
+
+Get & install the package using the:
+    go get github.com/martinjansa/pushoverbroker
+
+Provide the server certificates into $GOPATH/src/github.com/martinjansa/pushoverbroker/private/server.cert.pem & server.key.pem. Optionally you can use the github.com/martinjansa/pushoverbroker/utils/generateservercert.sh to generate the self-signed certificates (unsecure for production).
+
 ## Techology
 
 The service is implemented in Go language

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -17,8 +18,8 @@ func TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender(t *
 	// **** GIVEN ****
 
 	// get the certificate files path
-	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.pem")
-	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key")
+	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.cert.pem")
+	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key.pem")
 
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := NewPushNotificationsSenderMock()
@@ -45,8 +46,12 @@ func TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender(t *
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
 
-	// port the request
-	client := &http.Client{}
+	// initialize the client that does not check the certificates (for testing purposes only)
+	tlsConfig := tls.Config{InsecureSkipVerify: true}
+	transport := &http.Transport{TLSClientConfig: &tlsConfig}
+	client := &http.Client{Transport: transport}
+
+	// post the request
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Errorf("POST request failed with error %s.", err)

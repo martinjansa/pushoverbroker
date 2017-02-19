@@ -15,8 +15,10 @@ type IncommingPushNotificationMessageHandler interface {
 
 // Server is the REST API server that handles the clients connections
 type Server struct {
-	mux    *http.ServeMux
-	server *http.Server
+	mux          *http.ServeMux
+	server       *http.Server
+	certFilePath string
+	keyFilePath  string
 }
 
 // NewServer creates a new server. Accepts the messageHandler that will handle all the received messages
@@ -25,6 +27,8 @@ func NewServer(port int, certFilePath string, keyFilePath string, messageHandler
 
 	// create and inititalize the multiplexer
 	s.mux = http.NewServeMux()
+	s.certFilePath = certFilePath
+	s.keyFilePath = keyFilePath
 
 	// handler of the POST messages to /1/messages.json
 	h1 := new(Post1MessageJSONHTTPHandler)
@@ -44,7 +48,8 @@ func NewServer(port int, certFilePath string, keyFilePath string, messageHandler
 
 // Run starts the HTTP server and listens and serves the incoming requests
 func (s *Server) Run() {
-	s.server.ListenAndServe()
+	log.Fatal(s.server.ListenAndServeTLS(s.certFilePath, s.keyFilePath))
+	log.Print("Server::Run() finished")
 }
 
 // Post1MessageJSONHTTPHandler handles the POST request at /1/messages.json
