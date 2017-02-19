@@ -37,8 +37,8 @@ func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message Pu
 	}
 }
 
-// TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
-func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message string) {
+// ImplTestServerShouldAcceptTLSPOST1MessagesJSON is a test function for the REST API call
+func ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t *testing.T, port int, message string) {
 
 	// **** GIVEN ****
 
@@ -60,7 +60,7 @@ func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message
 	formStr := form.Encode()
 
 	// Prepare the POST request with form data
-	urlStr := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+	urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
 	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
@@ -90,11 +90,11 @@ func ImplTestServerShouldAcceptPOST1MessagesJSON(t *testing.T, port int, message
 // TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithEmptyMessage(t *testing.T) {
 
-	ImplTestServerShouldAcceptPOST1MessagesJSON(t, 8502, "")
+	ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t, 8502, "")
 }
 
 // TestServerShouldAcceptPOST1MessagesJsonWithMessage is a test function for the REST API call
 func TestServerShouldAcceptPOST1MessagesJsonWithMessage(t *testing.T) {
 
-	ImplTestServerShouldAcceptPOST1MessagesJSON(t, 8503, "<dummy message>")
+	ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t, 8503, "<dummy message>")
 }
