@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"strconv"
 	"testing"
 )
@@ -14,10 +16,14 @@ func TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender(t *
 
 	// **** GIVEN ****
 
+	// get the certificate files path
+	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.pem")
+	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key")
+
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := NewPushNotificationsSenderMock()
 	port := 8501
-	broker := NewPushoverBroker(port, pcm)
+	broker := NewPushoverBroker(port, certFilePath, keyFilePath, pcm)
 
 	go broker.Run()
 

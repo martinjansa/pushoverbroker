@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"strconv"
 	"testing"
 )
@@ -42,9 +44,13 @@ func ImplTestServerShouldAcceptTLSPOST1MessagesJSON(t *testing.T, port int, mess
 
 	// **** GIVEN ****
 
+	// get the certificate files path
+	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.pem")
+	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key")
+
 	// The REST API server is initialized and connected to the message handler mock
 	messageHandlerMock := NewMessageHandlerMock()
-	brokerServer := NewServer(port, messageHandlerMock)
+	brokerServer := NewServer(port, certFilePath, keyFilePath, messageHandlerMock)
 	go brokerServer.Run()
 
 	// **** WHEN ****

@@ -20,7 +20,7 @@ type Server struct {
 }
 
 // NewServer creates a new server. Accepts the messageHandler that will handle all the received messages
-func NewServer(port int, messageHandler IncommingPushNotificationMessageHandler) *Server {
+func NewServer(port int, certFilePath string, keyFilePath string, messageHandler IncommingPushNotificationMessageHandler) *Server {
 	s := new(Server)
 
 	// create and inititalize the multiplexer
