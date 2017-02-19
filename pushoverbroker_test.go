@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-// TestShouldForwardEmptyMessage is a test function for the REST API call
-func TestShouldForwardEmptyMessage(t *testing.T) {
+// TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender is a test function for the REST API call
+func TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender(t *testing.T) {
 
 	// **** GIVEN ****
 
@@ -34,7 +34,7 @@ func TestShouldForwardEmptyMessage(t *testing.T) {
 	formStr := form.Encode()
 
 	// Prepare the POST request with form data
-	urlStr := "http://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+	urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
 	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
