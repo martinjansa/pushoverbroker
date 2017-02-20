@@ -26,6 +26,7 @@ func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message Push
 
 // ForceResponse configures the response to be returned from the PostPushNotificationMessage() call
 func (pcm *PushNotificationsSenderMock) ForceResponse(response error) {
+	pcm.handleMessageCalled = 0
 	pcm.response = response
 }
 
