@@ -85,7 +85,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	if err != nil {
 
 		// report the error
-		log.Printf("Handling of the message %s failed with error %s. Returning HTTP 202.", pn.DumpToString(), err.Error())
+		log.Printf("Handling of the message %s failed with error %s. Returning HTTP 202 (Accepted).", pn.DumpToString(), err.Error())
 		w.WriteHeader(202)
 		w.Write([]byte(err.Error()))
 		return
