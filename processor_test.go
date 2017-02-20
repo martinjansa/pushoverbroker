@@ -18,13 +18,13 @@ func TestShouldSendMessageToPushNotificationsSender(t *testing.T) {
 
 	// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
 	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	err := processor.HandleMessage(testMessage)
+	err, responseCode := processor.HandleMessage(testMessage)
 
 	// **** THEN ****
 
 	// the request should respond correctly
 	if err != nil {
-		t.Errorf("Handling of the message failed with error %s.", err)
+		t.Errorf("Handling of the message failed with error %s, response code %d.", err, responseCode)
 		return
 	}
 

@@ -82,7 +82,7 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 			client := &http.Client{Transport: transport}
 
 			// force the moct to fail the posting of the push notification message
-			pcm.ForceResponse(tc.responseErr)
+			pcm.ForceResponse(tc.responseErr, tc.responseStatusCode)
 
 			// post the request
 			resp, err := client.Do(req)

@@ -25,8 +25,8 @@ func NewPushoverConnector() *PushoverConnector {
 	return pc
 }
 
-// PostPushNotificationMessage post a message to the Pushover server
-func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotification) error {
+// PostPushNotificationMessage post a message to the Pushover server and returns error if ocurred (or nil) and response code (or 0 on POST error)
+func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotification) (error, int) {
 
 	// encode message into the URL form values
 	form := url.Values{}
@@ -44,7 +44,7 @@ func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotificatio
 
 	resp, err := pc.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("sending the Pushover API POST request at %s with foorm \"%s\" failed with error %s", url, form, err)
+		return fmt.Errorf("sending the Pushover API POST request at %s with foorm \"%s\" failed with error %s", url, form, err), 0
 	}
 	defer resp.Body.Close()
 
@@ -53,9 +53,9 @@ func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotificatio
 
 	// the request should respond correctly
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("processing of the Pushover API POST request at %s with form \"%s\" returned status code %d, status message %s, body \"%s\"", url, form, resp.StatusCode, resp.Status, string(body))
+		return fmt.Errorf("processing of the Pushover API POST request at %s with form \"%s\" returned status code %d, status message %s, body \"%s\"", url, form, resp.StatusCode, resp.Status, string(body)), 0
 	}
 	//t.Logf("POST request response body '%s'.", string(body))
 
-	return nil
+	return nil, 0
 }

@@ -16,10 +16,12 @@ func NewProcessor(PushNotificationsSender PushNotificationsSender) *Processor {
 }
 
 // HandleMessage receives a message to be processed (see IncommingPushNotificationMessageHandler interface)
-func (p *Processor) HandleMessage(message PushNotification) error {
+func (p *Processor) HandleMessage(message PushNotification) (error, int) {
 
 	// simple forward of the received message to the Pushover connector and return the result
-	return p.PushNotificationsSender.PostPushNotificationMessage(message)
+	responseErr, reseponseCode := p.PushNotificationsSender.PostPushNotificationMessage(message)
+
+	return responseErr, reseponseCode
 }
 
 // Run starts the message processing loop

@@ -10,7 +10,7 @@ import (
 
 // IncommingPushNotificationMessageHandler handles message accepted by the REST API
 type IncommingPushNotificationMessageHandler interface {
-	HandleMessage(message PushNotification) error
+	HandleMessage(message PushNotification) (error, int)
 }
 
 // Server is the REST API server that handles the clients connections
@@ -79,13 +79,13 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	log.Printf("Received request with %s.", pn.DumpToString())
 
 	// handle the message
-	err = h.messageHandler.HandleMessage(pn)
+	err, responseCode := h.messageHandler.HandleMessage(pn)
 
 	// if the handling of the message failed
 	if err != nil {
 
 		// report the error
-		log.Printf("Handling of the message %s failed with error %s. Returning HTTP 202 (Accepted).", pn.DumpToString(), err.Error())
+		log.Printf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 202 (Accepted).", pn.DumpToString(), err.Error(), responseCode)
 		w.WriteHeader(202)
 		w.Write([]byte(err.Error()))
 		return

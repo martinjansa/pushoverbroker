@@ -25,10 +25,10 @@ func NewMessageHandlerMock() *MessageHandlerMock {
 	return mh
 }
 
-func (mh *MessageHandlerMock) HandleMessage(message PushNotification) error {
+func (mh *MessageHandlerMock) HandleMessage(message PushNotification) (error, int) {
 	mh.handleMessageCalled++
 	mh.notification = message
-	return nil
+	return nil, 200
 }
 
 func (mh *MessageHandlerMock) AssertMessageAcceptedOnce(t *testing.T, message PushNotification) {

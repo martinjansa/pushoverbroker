@@ -2,5 +2,6 @@ package main
 
 // PushNotificationsSender represents the connector to the Pushover API
 type PushNotificationsSender interface {
-	PostPushNotificationMessage(message PushNotification) error
+	// PostPushNotificationMessage handles the message and returns error if ocurred (or nil) and response code (or 0 on POST error)
+	PostPushNotificationMessage(message PushNotification) (error, int)
 }

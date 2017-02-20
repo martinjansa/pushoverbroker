@@ -4,7 +4,8 @@ import "testing"
 
 // PushNotificationsSenderMock implements the PushNotificationsSender.PushNotificationsSender interface
 type PushNotificationsSenderMock struct {
-	response            error
+	responseErr         error
+	responseCode        int
 	handleMessageCalled int
 	notification        PushNotification
 }
@@ -12,22 +13,24 @@ type PushNotificationsSenderMock struct {
 // NewPushNotificationsSenderMock initializes the mock
 func NewPushNotificationsSenderMock() *PushNotificationsSenderMock {
 	pcm := new(PushNotificationsSenderMock)
-	pcm.response = nil
+	pcm.responseErr = nil
+	pcm.responseCode = 200
 	pcm.handleMessageCalled = 0
 	return pcm
 }
 
-// PostPushNotificationMessage receives the push notification message and returns the predefined response
-func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message PushNotification) error {
-	pcm.handleMessageCalled++
-	pcm.notification = message
-	return pcm.response
+// ForceResponse configures the response to be returned from the PostPushNotificationMessage() call
+func (pcm *PushNotificationsSenderMock) ForceResponse(responseErr error, reseponseCode int) {
+	pcm.handleMessageCalled = 0
+	pcm.responseErr = responseErr
+	pcm.responseCode = reseponseCode
 }
 
-// ForceResponse configures the response to be returned from the PostPushNotificationMessage() call
-func (pcm *PushNotificationsSenderMock) ForceResponse(response error) {
-	pcm.handleMessageCalled = 0
-	pcm.response = response
+// PostPushNotificationMessage receives the push notification message and returns the predefined error and response code
+func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message PushNotification) (error, int) {
+	pcm.handleMessageCalled++
+	pcm.notification = message
+	return pcm.responseErr, pcm.responseCode
 }
 
 // AssertMessageAcceptedOnce checks that the message was accepted
