@@ -12,8 +12,8 @@ import (
 	"testing"
 )
 
-// TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender is a test function for the REST API call
-func TestAPI1MessageJSONShouldAcceptEmptyMessageViaTLSAndForwardToPushSender(t *testing.T) {
+// TestAPI1MessageJSONShouldMessageViaTLSAndForwardToPushSender is a test function for the REST API call
+func TestAPI1MessageJSONShouldMessageViaTLSAndForwardToPushSender(t *testing.T) {
 
 	// **** GIVEN ****
 
