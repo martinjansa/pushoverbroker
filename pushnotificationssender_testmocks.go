@@ -24,6 +24,11 @@ func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message Push
 	return pcm.response
 }
 
+// ForceResponse configures the response to be returned from the PostPushNotificationMessage() call
+func (pcm *PushNotificationsSenderMock) ForceResponse(response error) {
+	pcm.response = response
+}
+
 // AssertMessageAcceptedOnce checks that the message was accepted
 func (pcm *PushNotificationsSenderMock) AssertMessageAcceptedOnce(t *testing.T, message PushNotification) {
 	if pcm.handleMessageCalled != 1 {

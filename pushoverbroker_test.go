@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -12,8 +13,28 @@ import (
 	"testing"
 )
 
-// TestAPI1MessageJSONShouldMessageViaTLSAndForwardToPushSender is a test function for the REST API call
-func TestAPI1MessageJSONShouldMessageViaTLSAndForwardToPushSender(t *testing.T) {
+// TestAPI1MessageJSONShouldForwardToPushSenderAndReturnPostFailure is a test function for the REST API call
+func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
+
+	var testcases = []struct {
+		id                 string
+		urlValues          map[string]string
+		responseErr        error
+		responseStatusCode int
+		expectedMessage    PushNotification
+		expectedStatusCode int
+	}{
+		{
+			"ShouldReturnSuccess",
+			map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 200,
+			PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 200,
+		},
+		{
+			"ShouldReturnErrorOnPostError",
+			map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, errors.New("posting failed, no internet"), 0,
+			PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 202,
+		},
+	}
 
 	// **** GIVEN ****
 
@@ -28,46 +49,49 @@ func TestAPI1MessageJSONShouldMessageViaTLSAndForwardToPushSender(t *testing.T) 
 
 	go broker.Run()
 
-	// **** WHEN ****
+	for _, tc := range testcases {
 
-	// prepare the test message
-	expectedMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
+		// **** WHEN ****
 
-	// encode message into the URL form values
-	form := url.Values{}
-	form.Set("token", "<dummy token>")
-	form.Set("user", "<dummy user>")
-	form.Set("message", "")
-	formStr := form.Encode()
+		// encode message into the URL form values
+		form := url.Values{}
+		for name, value := range tc.urlValues {
+			form.Set(name, value)
+		}
+		formStr := form.Encode()
 
-	// Prepare the POST request with form data
-	urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
-	req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
+		// Prepare the POST request with form data
+		urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+		req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
 
-	// initialize the client that does not check the certificates (for testing purposes only)
-	tlsConfig := tls.Config{InsecureSkipVerify: true}
-	transport := &http.Transport{TLSClientConfig: &tlsConfig}
-	client := &http.Client{Transport: transport}
+		// initialize the client that does not check the certificates (for testing purposes only)
+		tlsConfig := tls.Config{InsecureSkipVerify: true}
+		transport := &http.Transport{TLSClientConfig: &tlsConfig}
+		client := &http.Client{Transport: transport}
 
-	// post the request
-	resp, err := client.Do(req)
-	if err != nil {
-		t.Errorf("POST request failed with error %s.", err)
-		return
+		// force the moct to fail the posting of the push notification message
+		pcm.ForceResponse(tc.responseErr)
+
+		// post the request
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Errorf("POST request failed with error %s, but was expected to succeed.", err)
+			return
+		}
+		defer resp.Body.Close()
+
+		// **** THEN ****
+
+		// check the expected response code
+		if resp.StatusCode != tc.expectedStatusCode {
+			t.Errorf("POST request returned status code %d and status message %s. Expected code %d.", resp.StatusCode, resp.Status, tc.expectedStatusCode)
+		}
+		body, _ := ioutil.ReadAll(resp.Body)
+		t.Logf("POST request response body '%s'.", string(body))
+
+		// the right message shoud be delivered to the mock
+		pcm.AssertMessageAcceptedOnce(t, tc.expectedMessage)
 	}
-	defer resp.Body.Close()
-
-	// **** THEN ****
-
-	// the request should respond correctly
-	if resp.StatusCode != 200 {
-		t.Errorf("POST request returned status code %d and status message %s. Expected code 200.", resp.StatusCode, resp.Status)
-	}
-	body, _ := ioutil.ReadAll(resp.Body)
-	t.Logf("POST request response body '%s'.", string(body))
-
-	// the right message shoud be delivered to the mock
-	pcm.AssertMessageAcceptedOnce(t, expectedMessage)
 }
