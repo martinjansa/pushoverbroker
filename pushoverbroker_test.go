@@ -51,47 +51,50 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 
 	for _, tc := range testcases {
 
-		// **** WHEN ****
+		t.Run(tc.id, func(t *testing.T) {
 
-		// encode message into the URL form values
-		form := url.Values{}
-		for name, value := range tc.urlValues {
-			form.Set(name, value)
-		}
-		formStr := form.Encode()
+			// **** WHEN ****
 
-		// Prepare the POST request with form data
-		urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
-		req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
+			// encode message into the URL form values
+			form := url.Values{}
+			for name, value := range tc.urlValues {
+				form.Set(name, value)
+			}
+			formStr := form.Encode()
 
-		// initialize the client that does not check the certificates (for testing purposes only)
-		tlsConfig := tls.Config{InsecureSkipVerify: true}
-		transport := &http.Transport{TLSClientConfig: &tlsConfig}
-		client := &http.Client{Transport: transport}
+			// Prepare the POST request with form data
+			urlStr := "https://localhost:" + strconv.Itoa(port) + "/1/messages.json"
+			req, err := http.NewRequest("POST", urlStr, bytes.NewBufferString(formStr))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Add("Content-Length", strconv.Itoa(len(formStr)))
 
-		// force the moct to fail the posting of the push notification message
-		pcm.ForceResponse(tc.responseErr)
+			// initialize the client that does not check the certificates (for testing purposes only)
+			tlsConfig := tls.Config{InsecureSkipVerify: true}
+			transport := &http.Transport{TLSClientConfig: &tlsConfig}
+			client := &http.Client{Transport: transport}
 
-		// post the request
-		resp, err := client.Do(req)
-		if err != nil {
-			t.Errorf("POST request failed with error %s, but was expected to succeed.", err)
-			return
-		}
-		defer resp.Body.Close()
+			// force the moct to fail the posting of the push notification message
+			pcm.ForceResponse(tc.responseErr)
 
-		// **** THEN ****
+			// post the request
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Errorf("POST request failed with error %s, but was expected to succeed.", err)
+				return
+			}
+			defer resp.Body.Close()
 
-		// check the expected response code
-		if resp.StatusCode != tc.expectedStatusCode {
-			t.Errorf("POST request returned status code %d and status message %s. Expected code %d.", resp.StatusCode, resp.Status, tc.expectedStatusCode)
-		}
-		body, _ := ioutil.ReadAll(resp.Body)
-		t.Logf("POST request response body '%s'.", string(body))
+			// **** THEN ****
 
-		// the right message shoud be delivered to the mock
-		pcm.AssertMessageAcceptedOnce(t, tc.expectedMessage)
+			// check the expected response code
+			if resp.StatusCode != tc.expectedStatusCode {
+				t.Errorf("POST request returned status code %d and status message %s. Expected code %d.", resp.StatusCode, resp.Status, tc.expectedStatusCode)
+			}
+			body, _ := ioutil.ReadAll(resp.Body)
+			t.Logf("POST request response body '%s'.", string(body))
+
+			// the right message shoud be delivered to the mock
+			pcm.AssertMessageAcceptedOnce(t, tc.expectedMessage)
+		})
 	}
 }
