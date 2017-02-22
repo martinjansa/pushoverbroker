@@ -35,6 +35,7 @@ func NewServer(port int, certFilePath string, keyFilePath string, messageHandler
 	h1.messageHandler = messageHandler
 	// create a schema decoder
 	h1.decoder = schema.NewDecoder()
+	h1.decoder.IgnoreUnknownKeys(true)
 
 	s.mux.Handle("/1/messages.json", h1)
 

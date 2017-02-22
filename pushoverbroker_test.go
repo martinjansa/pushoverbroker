@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"time"
 	"testing"
 )
 
@@ -47,8 +48,9 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 	// **** GIVEN ****
 
 	// get the certificate files path
-	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.cert.pem")
-	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key.pem")
+	wd, _ := os.Getwd()
+	certFilePath := path.Join(wd, "private", "server.cert.pem")
+	keyFilePath := path.Join(wd, "private", "server.key.pem")
 
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := NewPushNotificationsSenderMock()
@@ -56,6 +58,7 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 	broker := NewPushoverBroker(port, certFilePath, keyFilePath, pcm)
 
 	go broker.Run()
+	time.Sleep(500*time.Millisecond)
 
 	for _, tc := range testcases {
 

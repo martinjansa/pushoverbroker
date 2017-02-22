@@ -11,6 +11,7 @@ import (
 	"path"
 	"strconv"
 	"testing"
+	"time"
 )
 
 // implements the IncommingPushNotificationMessageHandler interface
@@ -109,14 +110,16 @@ func TestServerAPI1MessageJSONShouldForwardToMessageHandler(t *testing.T) {
 	// **** GIVEN ****
 
 	// get the certificate files path
-	certFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.cert.pem")
-	keyFilePath := path.Join(path.Dir(os.Args[0]), "private", "server.key.pem")
+	wd, _ := os.Getwd()
+	certFilePath := path.Join(wd, "private", "server.cert.pem")
+	keyFilePath := path.Join(wd, "private", "server.key.pem")
 
 	// The REST API server is initialized and connected to the message handler mock
 	messageHandlerMock := NewMessageHandlerMock()
 	port := 8502
 	brokerServer := NewServer(port, certFilePath, keyFilePath, messageHandlerMock)
 	go brokerServer.Run()
+	time.Sleep(500*time.Millisecond)
 
 	for _, tc := range testcases {
 
@@ -148,7 +151,7 @@ func TestServerAPI1MessageJSONShouldForwardToMessageHandler(t *testing.T) {
 			// post the request
 			resp, err := client.Do(req)
 			if err != nil {
-				t.Errorf("POST request failed with error %s, but was expected to succeed.", err)
+				t.Errorf("POST request failed with error '%s', but was expected to succeed.", err)
 				return
 			}
 			defer resp.Body.Close()
