@@ -50,7 +50,6 @@ func NewServer(port int, certFilePath string, keyFilePath string, messageHandler
 // Run starts the HTTP server and listens and serves the incoming requests
 func (s *Server) Run() {
 	log.Fatal(s.server.ListenAndServeTLS(s.certFilePath, s.keyFilePath))
-	log.Print("Server::Run() finished")
 }
 
 // Post1MessageJSONHTTPHandler handles the POST request at /1/messages.json
