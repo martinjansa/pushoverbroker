@@ -57,8 +57,11 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 	port := 8501
 	broker := NewPushoverBroker(port, certFilePath, keyFilePath, pcm)
 
+	// start the broker
 	go broker.Run()
-	time.Sleep(500*time.Millisecond)
+
+	// give the HTTP server enough time to start listening for the new connections
+	time.Sleep(100*time.Millisecond)
 
 	for _, tc := range testcases {
 

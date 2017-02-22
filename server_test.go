@@ -118,8 +118,12 @@ func TestServerAPI1MessageJSONShouldForwardToMessageHandler(t *testing.T) {
 	messageHandlerMock := NewMessageHandlerMock()
 	port := 8502
 	brokerServer := NewServer(port, certFilePath, keyFilePath, messageHandlerMock)
+
+	// start the server
 	go brokerServer.Run()
-	time.Sleep(500*time.Millisecond)
+
+	// give the HTTP server enough time to start listening for the new connections
+	time.Sleep(100*time.Millisecond)
 
 	for _, tc := range testcases {
 
