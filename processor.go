@@ -29,6 +29,7 @@ func (p *Processor) HandleMessage(message PushNotification) (error, int) {
 		// if the response represents a temporary error and we should enqueue the message and try later
 		switch reseponseCode {
 		case
+			500, // Internal Server Error
 			504, // Gateway Timeout
 			598, // Network Read Timeout
 			599: // Network Timeout
