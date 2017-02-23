@@ -48,26 +48,26 @@ func TestAPI1MessageJSON(t *testing.T) {
 			{
 				// checks that the success result is propagated if a call to push notification sender succeeds
 				"ShouldReturnSuccessFromExternalAPI",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 200,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 200,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 200,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 200,
 			},
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails
 				"ShouldReturnAcceptedOnPostError",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, errors.New("posting failed, no internet"), 0,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 202,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, errors.New("posting failed, no internet"), 0,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202,
 			},
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails with temporary server error 500
 				"ShouldReturnAcceptedOnPostError",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 500,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 202,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202,
 			},
 			{
 				// checks that the success result 400 (Bad Request) is returned if the push notification sender API calls returns this status code
 				"ShouldReturnBadRequestFromExternalAPI",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 400,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 400,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 400,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 400,
 			},
 		}
 

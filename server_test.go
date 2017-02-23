@@ -88,8 +88,8 @@ func TestServer(t *testing.T) {
 			{
 				// checks that the success result is propagated if a call to push notification sender succeeds
 				"ShouldReturnSuccessForEmptyMessage",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 200,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 200,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 200,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 200,
 			},
 			{
 				// checks that the success result is propagated if a call to push notification sender succeeds
@@ -100,32 +100,32 @@ func TestServer(t *testing.T) {
 			{
 				// checks that the success result 202 Accepted is returned if this code is passed from the message handler
 				"ShouldReturn202FromNotificationHandler",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 202,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 202,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 202,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202,
 			},
 			{
 				// checks that the error code 403 is returned if handling in the notification handler fails returns this status code
 				"ShouldReturn403FromNotificationHandler",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 403,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 403,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 403,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 403,
 			},
 			{
 				// checks that the error code 429 is returned if handling in the notification handler fails returns this status code
 				"ShouldReturn429FromNotificationHandler",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 429,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 429,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 429,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 429,
 			},
 			{
 				// checks that the error code 500 is returned if handling in the notification handler fails returns this status code
 				"ShouldReturn500FromNotificationHandler",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 500,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 500,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 500,
 			},
 			{
 				// checks that the internal server error 500 is returned if handling in the notification handler fails
 				"ShouldReturn500OnInternalError",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, errors.New("any internal error"), 0,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 500,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, errors.New("any internal error"), 0,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 500,
 			},
 		}
 
