@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -24,6 +25,20 @@ func (m *PushNotification) GetUser() string {
 // GetMessage returns the message content from the push notification
 func (m *PushNotification) GetMessage() string {
 	return m.Message
+}
+
+// check the validity of the PushNotification message
+func (m *PushNotification) Validate() error {
+	if m.Token == "" {
+		return errors.New("push notification token value cannot be empty")
+	}
+	if m.User == "" {
+		return errors.New("push notification user value cannot be empty")
+	}
+	if m.Message == "" {
+		return errors.New("push notification message value cannot be empty")
+	}
+	return nil
 }
 
 // DumpToString converts the PushNotification to string
