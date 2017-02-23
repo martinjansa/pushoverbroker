@@ -1,5 +1,6 @@
 # private directory not to be pushed to the git repository. Should contain the server certificate files server.key and server.pem
 private
+testfiles
 
 *.exe
 pushoverbroker
