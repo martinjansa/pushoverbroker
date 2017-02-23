@@ -10,8 +10,8 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"time"
 	"testing"
+	"time"
 )
 
 // TestAPI1MessageJSONShouldForwardToPushSenderAndReturnPostFailure is a test function for the REST API call
@@ -38,6 +38,12 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 			PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 202,
 		},
 		{
+			// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails with temporary server error 500
+			"ShouldReturnAcceptedOnPostError",
+			map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 500,
+			PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}, 202,
+		},
+		{
 			// checks that the success result 400 (Bad Request) is returned if the push notification sender API calls returns this status code
 			"ShouldReturnBadRequestFromExternalAPI",
 			map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": ""}, nil, 400,
@@ -61,7 +67,7 @@ func TestAPI1MessageJSONShouldForwardToPushSender(t *testing.T) {
 	go broker.Run()
 
 	// give the HTTP server enough time to start listening for the new connections
-	time.Sleep(100*time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	for _, tc := range testcases {
 

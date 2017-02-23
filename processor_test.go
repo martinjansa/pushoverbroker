@@ -102,6 +102,7 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 		responseStatusCode int
 	}{
 		{"ShouldReturn202OnPostError", errors.New("post error"), 0},
+		{"ShouldReturn202OnInternalServerError", nil, 500},
 		{"ShouldReturn202OnGatewayTimeOut504", nil, 504},
 		{"ShouldReturn202OnNetworkReadTimeOut598", nil, 598},
 		{"ShouldReturn202OnNetworkTimeOut599", nil, 599},
