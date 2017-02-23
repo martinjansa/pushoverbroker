@@ -70,7 +70,7 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 			// **** WHEN ****
 
 			// set the response in the mock
-			pcm.ForceResponse(nil, tc.responseStatusCode, &Limits{limit: 10000, remaining: 10, reset: 12345})
+			pcm.ForceResponse(nil, tc.responseStatusCode, tc.responseLimits)
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
 			err, responseCode, limits := processor.HandleMessage(testMessage)
