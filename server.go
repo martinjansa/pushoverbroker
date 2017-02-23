@@ -72,7 +72,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 
 	// if the request type is not POST
 	if r.Method != "POST" {
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		w.Write([]byte(fmt.Sprintf("Received request of method \"%s\", expected \"POST\".", r.Method)))
 		return
 	}
@@ -80,7 +80,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	// does the request does not contain the requested content type
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/x-www-form-urlencoded" {
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		w.Write([]byte(fmt.Sprintf("Received request with unsupported Content-Type %s, expected application/x-www-form-urlencoded.", contentType)))
 		return
 	}
@@ -88,7 +88,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	// parse the form
 	err := r.ParseForm()
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		w.Write([]byte(fmt.Sprintf("the form parsing failed with error %s", err.Error())))
 		return
 	}
@@ -97,7 +97,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	var pn PushNotification
 	err = h.decoder.Decode(&pn, r.PostForm)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		w.Write([]byte(fmt.Sprintf("the form decoding failed with error %s", err.Error())))
 		return
 	}
@@ -106,7 +106,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	// if the message has all the mandatory fields token, user and message non empty
 	err = pn.Validate()
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(400)
 		w.Write([]byte(fmt.Sprintf("the form decoding failed with error %s. POST form content: \"%s\".", err.Error(), r.PostForm)))
 		return
 	}
