@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -38,36 +39,37 @@ func TestAPI1MessageJSON(t *testing.T) {
 	t.Run("ShouldForwardToPushSender", func(t *testing.T) {
 
 		var testcases = []struct {
-			id                 string
-			urlValues          map[string]string
-			responseErr        error
-			responseStatusCode int
-			expectedMessage    PushNotification
-			expectedStatusCode int
+			id                         string
+			urlValues                  map[string]string
+			responseErr                error
+			responseStatusCode         int
+			expectedMessage            PushNotification
+			expectedStatusCode         int
+			expectedResponseBodyStatus int
 		}{
 			{
 				// checks that the success result is propagated if a call to push notification sender succeeds
 				"ShouldReturnSuccessFromExternalAPI",
 				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 200,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 200,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 200, 1,
 			},
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails
 				"ShouldReturnAcceptedOnPostError",
 				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, errors.New("posting failed, no internet"), 0,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202, 1,
 			},
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails with temporary server error 500
 				"ShouldReturnAcceptedOnPostError",
 				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202, 1,
 			},
 			{
 				// checks that the success result 400 (Bad Request) is returned if the push notification sender API calls returns this status code
 				"ShouldReturnBadRequestFromExternalAPI",
 				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 400,
-				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 400,
+				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 400, 0,
 			},
 		}
 
@@ -108,15 +110,41 @@ func TestAPI1MessageJSON(t *testing.T) {
 
 				// **** THEN ****
 
+				// the right message shoud be delivered to the mock
+				pcm.AssertMessageAcceptedOnce(t, tc.expectedMessage)
+
 				// check the expected response code
 				if resp.StatusCode != tc.expectedStatusCode {
 					t.Errorf("POST request returned status code %d and status message %s. Expected code %d.", resp.StatusCode, resp.Status, tc.expectedStatusCode)
+					return
 				}
-				body, _ := ioutil.ReadAll(resp.Body)
-				t.Logf("POST request response body '%s'.", string(body))
 
-				// the right message shoud be delivered to the mock
-				pcm.AssertMessageAcceptedOnce(t, tc.expectedMessage)
+				// check the response content type
+				responseContentType := resp.Header.Get("Content-Type")
+				if responseContentType != "application/json; charset=utf-8" {
+					t.Errorf("POST request returned content type %s, expected application/json; charset=utf-8.", responseContentType)
+					return
+				}
+
+				// get the content of the body
+				//body, _ := ioutil.ReadAll(resp.Body)
+				type ResponseJSONBodyContent struct {
+					Status  int    `json:"status"`
+					Request string `json:"request"`
+				}
+				var responseJSONBodyContent = ResponseJSONBodyContent{0, ""}
+				err = json.NewDecoder(resp.Body).Decode(responseJSONBodyContent)
+				if err != nil {
+					body, _ := ioutil.ReadAll(resp.Body)
+					t.Errorf("POST request returned JSON \"%s\", which failed to decode with error %s.", body, err.Error())
+					return
+				}
+
+				// check the status value
+				if responseJSONBodyContent.Status != tc.expectedResponseBodyStatus {
+					t.Errorf("POST request returned JSON with status %d, expected status was %d.", responseJSONBodyContent.Status, tc.expectedResponseBodyStatus)
+					return
+				}
 			})
 		}
 	})
