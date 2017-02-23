@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fmt"
+
 	"github.com/gorilla/schema"
 )
 
@@ -68,20 +70,46 @@ type Post1MessageJSONHTTPHandler struct {
 // handles the incomming request and forwards it to the message handler
 func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+	// if the request type is not POST
+	if r.Method != "POST" {
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Sprintf("Received request of method \"%s\", expected \"POST\".", r.Method)))
+		return
+	}
+
+	// does the request does not contain the requested content type
+	contentType := r.Header.Get("Content-Type")
+	if contentType != "application/x-www-form-urlencoded" {
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Sprintf("Received request with unsupported Content-Type %s, expected application/x-www-form-urlencoded.", contentType)))
+		return
+	}
+
 	// parse the form
 	err := r.ParseForm()
 	if err != nil {
-		log.Panicf("POST form parsing failed with error %s.", err.Error())
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Sprintf("the form parsing failed with error %s", err.Error())))
+		return
 	}
 
 	// decode the POST form
 	var pn PushNotification
 	err = h.decoder.Decode(&pn, r.PostForm)
 	if err != nil {
-		log.Panicf("POST form decoding failed with error %s.", err.Error())
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Sprintf("the form decoding failed with error %s", err.Error())))
+		return
 	}
 	//defer r.Body.Close()
 
+	// if the message has all the mandatory fields token, user and message non empty
+	err = pn.Validate()
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Sprintf("the form decoding failed with error %s. POST form content: \"%s\".", err.Error(), r.PostForm)))
+		return
+	}
 	// log the accepted message
 	log.Printf("Received request with %s.", pn.DumpToString())
 
@@ -92,7 +120,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	if err != nil {
 
 		// report the error
-		log.Printf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 500 (Internal Server Error).", pn.DumpToString(), err.Error(), responseCode)
+		err = fmt.Errorf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 500 (Internal Server Error).", pn.DumpToString(), err.Error(), responseCode)
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
