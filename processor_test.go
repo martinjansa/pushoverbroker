@@ -50,7 +50,6 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 		{"ShouldPropagateError404", 404},
 		{"ShouldPropagateError405", 405},
 		{"ShouldPropagateError426", 426},
-		{"ShouldPropagateError500", 500},
 	}
 	// **** GIVEN ****
 
