@@ -6,6 +6,7 @@ import "testing"
 type PushNotificationsSenderMock struct {
 	responseErr         error
 	responseCode        int
+	limits              *Limits
 	handleMessageCalled int
 	notification        PushNotification
 }
@@ -15,22 +16,24 @@ func NewPushNotificationsSenderMock() *PushNotificationsSenderMock {
 	pcm := new(PushNotificationsSenderMock)
 	pcm.responseErr = nil
 	pcm.responseCode = 200
+	pcm.limits = nil
 	pcm.handleMessageCalled = 0
 	return pcm
 }
 
 // ForceResponse configures the response to be returned from the PostPushNotificationMessage() call
-func (pcm *PushNotificationsSenderMock) ForceResponse(responseErr error, reseponseCode int) {
+func (pcm *PushNotificationsSenderMock) ForceResponse(responseErr error, reseponseCode int, limits *Limits) {
 	pcm.handleMessageCalled = 0
 	pcm.responseErr = responseErr
 	pcm.responseCode = reseponseCode
+	pcm.limits = limits
 }
 
 // PostPushNotificationMessage receives the push notification message and returns the predefined error and response code
-func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message PushNotification) (error, int) {
+func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message PushNotification) (error, int, *Limits) {
 	pcm.handleMessageCalled++
 	pcm.notification = message
-	return pcm.responseErr, pcm.responseCode
+	return pcm.responseErr, pcm.responseCode, pcm.limits
 }
 
 // AssertMessageAcceptedOnce checks that the message was accepted

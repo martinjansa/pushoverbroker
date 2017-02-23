@@ -21,7 +21,7 @@ func TestShouldSendMessageToPushNotificationsSender(t *testing.T) {
 
 	// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
 	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	err, responseCode := processor.HandleMessage(testMessage)
+	err, responseCode, _ := processor.HandleMessage(testMessage)
 
 	// **** THEN ****
 
@@ -41,15 +41,16 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 	var testcases = []struct {
 		id                 string
 		responseStatusCode int
+		responseLimits     *Limits
 	}{
-		{"ShouldPropagateSuccess200", 200},
-		{"ShouldPropagateError400", 400},
-		{"ShouldPropagateError401", 401},
-		{"ShouldPropagateError402", 402},
-		{"ShouldPropagateError403", 403},
-		{"ShouldPropagateError404", 404},
-		{"ShouldPropagateError405", 405},
-		{"ShouldPropagateError426", 426},
+		{"ShouldPropagateSuccess200", 200, &Limits{limit: 1000, remaining: 500, reset: 123456789}},
+		{"ShouldPropagateError400", 400, nil},
+		{"ShouldPropagateError401", 401, nil},
+		{"ShouldPropagateError402", 402, nil},
+		{"ShouldPropagateError403", 403, nil},
+		{"ShouldPropagateError404", 404, nil},
+		{"ShouldPropagateError405", 405, nil},
+		{"ShouldPropagateError426", 426, nil},
 	}
 	// **** GIVEN ****
 
@@ -69,10 +70,10 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 			// **** WHEN ****
 
 			// set the response in the mock
-			pcm.ForceResponse(nil, tc.responseStatusCode)
+			pcm.ForceResponse(nil, tc.responseStatusCode, &Limits{limit: 10000, remaining: 10, reset: 12345})
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
-			err, responseCode := processor.HandleMessage(testMessage)
+			err, responseCode, limits := processor.HandleMessage(testMessage)
 
 			// **** THEN ****
 
@@ -88,6 +89,12 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 
 				t.Errorf("Handling of the message failed with error %s, response code %d.", err, responseCode)
 			}
+
+			// if the limits match the expected limits
+			if limits != tc.responseLimits {
+
+				t.Errorf("Returned limits %s don't match the expected value %s.", limits, tc.responseLimits)
+			}
 		})
 	}
 }
@@ -99,12 +106,13 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 		id                 string
 		responseError      error
 		responseStatusCode int
+		responseLimits     *Limits
 	}{
-		{"ShouldReturn202OnPostError", errors.New("post error"), 0},
-		{"ShouldReturn202OnInternalServerError", nil, 500},
-		{"ShouldReturn202OnGatewayTimeOut504", nil, 504},
-		{"ShouldReturn202OnNetworkReadTimeOut598", nil, 598},
-		{"ShouldReturn202OnNetworkTimeOut599", nil, 599},
+		{"ShouldReturn202OnPostError", errors.New("post error"), 0, nil},
+		{"ShouldReturn202OnInternalServerError", nil, 500, nil},
+		{"ShouldReturn202OnGatewayTimeOut504", nil, 504, nil},
+		{"ShouldReturn202OnNetworkReadTimeOut598", nil, 598, nil},
+		{"ShouldReturn202OnNetworkTimeOut599", nil, 599, nil},
 	}
 	// **** GIVEN ****
 
@@ -124,10 +132,10 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 			// **** WHEN ****
 
 			// set the response in the mock
-			pcm.ForceResponse(tc.responseError, tc.responseStatusCode)
+			pcm.ForceResponse(tc.responseError, tc.responseStatusCode, tc.responseLimits)
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
-			err, responseCode := processor.HandleMessage(testMessage)
+			err, responseCode, limits := processor.HandleMessage(testMessage)
 
 			// **** THEN ****
 
@@ -142,6 +150,12 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 			} else {
 
 				t.Errorf("Handling of the message failed with error %s, response code %d.", err, responseCode)
+			}
+
+			// if the limits match the expected limits
+			if limits != tc.responseLimits {
+
+				t.Errorf("Returned limits %s don't match the expected value %s.", limits, tc.responseLimits)
 			}
 		})
 	}

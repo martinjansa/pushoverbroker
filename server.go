@@ -8,9 +8,16 @@ import (
 	"github.com/gorilla/schema"
 )
 
+// Limits represents the values of the message counts limits of the Pushover account
+type Limits struct {
+	limit     int
+	remaining int
+	reset     int
+}
+
 // IncommingPushNotificationMessageHandler handles message accepted by the REST API
 type IncommingPushNotificationMessageHandler interface {
-	HandleMessage(message PushNotification) (error, int)
+	HandleMessage(message PushNotification) (error, int, *Limits)
 }
 
 // Server is the REST API server that handles the clients connections
@@ -79,7 +86,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	log.Printf("Received request with %s.", pn.DumpToString())
 
 	// handle the message
-	err, responseCode := h.messageHandler.HandleMessage(pn)
+	err, responseCode, _ := h.messageHandler.HandleMessage(pn)
 
 	// if the handling of the message failed
 	if err != nil {

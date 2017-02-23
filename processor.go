@@ -16,10 +16,10 @@ func NewProcessor(PushNotificationsSender PushNotificationsSender) *Processor {
 }
 
 // HandleMessage receives a message to be processed (see IncommingPushNotificationMessageHandler interface)
-func (p *Processor) HandleMessage(message PushNotification) (error, int) {
+func (p *Processor) HandleMessage(message PushNotification) (error, int, *Limits) {
 
 	// simple forward of the received message to the Pushover connector and return the result
-	responseErr, reseponseCode := p.PushNotificationsSender.PostPushNotificationMessage(message)
+	responseErr, reseponseCode, _ := p.PushNotificationsSender.PostPushNotificationMessage(message)
 
 	acceptRequestToQueue := false
 
@@ -50,10 +50,10 @@ func (p *Processor) HandleMessage(message PushNotification) (error, int) {
 		// TODO: quing of the message and trying later should be done here!
 
 		// return HTTP error 202 (Accepted)
-		return nil, 202
+		return nil, 202, nil
 	}
 
-	return responseErr, reseponseCode
+	return responseErr, reseponseCode, nil
 }
 
 // Run starts the message processing loop
