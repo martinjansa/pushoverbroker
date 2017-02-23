@@ -19,7 +19,7 @@ func NewProcessor(PushNotificationsSender PushNotificationsSender) *Processor {
 func (p *Processor) HandleMessage(message PushNotification) (error, int, *Limits) {
 
 	// simple forward of the received message to the Pushover connector and return the result
-	responseErr, reseponseCode, _ := p.PushNotificationsSender.PostPushNotificationMessage(message)
+	responseErr, reseponseCode, limits := p.PushNotificationsSender.PostPushNotificationMessage(message)
 
 	acceptRequestToQueue := false
 
@@ -53,7 +53,7 @@ func (p *Processor) HandleMessage(message PushNotification) (error, int, *Limits
 		return nil, 202, nil
 	}
 
-	return responseErr, reseponseCode, nil
+	return responseErr, reseponseCode, limits
 }
 
 // Run starts the message processing loop

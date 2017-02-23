@@ -86,7 +86,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	log.Printf("Received request with %s.", pn.DumpToString())
 
 	// handle the message
-	err, responseCode, _ := h.messageHandler.HandleMessage(pn)
+	err, responseCode, limits := h.messageHandler.HandleMessage(pn)
 
 	// if the handling of the message failed
 	if err != nil {
@@ -96,6 +96,14 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
 		return
+	}
+
+	// if limits are provided
+	if limits != nil {
+		// construct the X-Limit-App-XXX headers
+		w.Header().Set("X-Limit-App-Limit", strconv.Itoa(limits.limit))
+		w.Header().Set("X-Limit-App-Remaining", strconv.Itoa(limits.remaining))
+		w.Header().Set("X-Limit-App-Reset", strconv.Itoa(limits.reset))
 	}
 
 	// return the obtained response code
