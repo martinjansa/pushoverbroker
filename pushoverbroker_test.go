@@ -133,7 +133,7 @@ func TestAPI1MessageJSON(t *testing.T) {
 					Request string `json:"request"`
 				}
 				var responseJSONBodyContent = ResponseJSONBodyContent{0, ""}
-				err = json.NewDecoder(resp.Body).Decode(responseJSONBodyContent)
+				err = json.NewDecoder(resp.Body).Decode(&responseJSONBodyContent)
 				if err != nil {
 					body, _ := ioutil.ReadAll(resp.Body)
 					t.Errorf("POST request returned JSON \"%s\", which failed to decode with error %s.", body, err.Error())

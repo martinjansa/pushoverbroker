@@ -67,29 +67,48 @@ type Post1MessageJSONHTTPHandler struct {
 	decoder        *schema.Decoder
 }
 
+// WriteSuccessJSONResponse writes the response header and JSON body
+func WriteSuccessJSONResponse(w http.ResponseWriter, responseCode int, request string) {
+	responseBody := fmt.Sprintf("{\"status\": 1, \"request\": \"%s\"}", request)
+	log.Printf("Writing response with status code %d and body %s.", responseCode, responseBody)
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(responseCode)
+	w.Write([]byte(responseBody))
+}
+
+// WriteErrorJSONResponse writes the response header and JSON body with error string
+func WriteErrorJSONResponse(w http.ResponseWriter, responseCode int, request string, errorStr string) {
+	responseBody := fmt.Sprintf("{\"status\": 0, \"request\": \"%s\", \"errors\":[\"%s\"]}", request, errorStr)
+	log.Printf("Writing response with status code %d and body %s.", responseCode, responseBody)
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(responseCode)
+	w.Write([]byte(responseBody))
+}
+
 // handles the incomming request and forwards it to the message handler
 func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
+	request := "TODO: generate random"
+
 	// if the request type is not POST
 	if r.Method != "POST" {
-		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("Received request of method \"%s\", expected \"POST\".", r.Method)))
+		WriteErrorJSONResponse(w, 400, request, fmt.Sprintf("Received request of method '%s', expected 'POST'", r.Method))
 		return
 	}
 
 	// does the request does not contain the requested content type
 	contentType := r.Header.Get("Content-Type")
 	if contentType != "application/x-www-form-urlencoded" {
-		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("Received request with unsupported Content-Type %s, expected application/x-www-form-urlencoded.", contentType)))
+		WriteErrorJSONResponse(w, 400, request, fmt.Sprintf("Received request with unsupported Content-Type %s, expected application/x-www-form-urlencoded", contentType))
 		return
 	}
 
 	// parse the form
 	err := r.ParseForm()
 	if err != nil {
-		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("the form parsing failed with error %s", err.Error())))
+		WriteErrorJSONResponse(w, 400, request, fmt.Sprintf("The POST form parsing failed with error %s", err.Error()))
 		return
 	}
 
@@ -97,8 +116,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	var pn PushNotification
 	err = h.decoder.Decode(&pn, r.PostForm)
 	if err != nil {
-		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("the form decoding failed with error %s", err.Error())))
+		WriteErrorJSONResponse(w, 400, request, fmt.Sprintf("The POST form decoding failed with error %s", err.Error()))
 		return
 	}
 	//defer r.Body.Close()
@@ -106,8 +124,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	// if the message has all the mandatory fields token, user and message non empty
 	err = pn.Validate()
 	if err != nil {
-		w.WriteHeader(400)
-		w.Write([]byte(fmt.Sprintf("the form decoding failed with error %s. POST form content: \"%s\".", err.Error(), r.PostForm)))
+		WriteErrorJSONResponse(w, 400, request, fmt.Sprintf("The POST form decoding failed with error %s. POST form content: '%s'", err.Error(), r.PostForm))
 		return
 	}
 	// log the accepted message
@@ -120,9 +137,7 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	if err != nil {
 
 		// report the error
-		err = fmt.Errorf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 500 (Internal Server Error).", pn.DumpToString(), err.Error(), responseCode)
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
+		WriteErrorJSONResponse(w, 500, request, fmt.Sprintf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 500 (Internal Server Error)", pn.DumpToString(), err.Error(), responseCode))
 		return
 	}
 
@@ -135,5 +150,5 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	}
 
 	// return the obtained response code
-	w.WriteHeader(responseCode)
+	WriteSuccessJSONResponse(w, responseCode, request)
 }
