@@ -17,9 +17,16 @@ type Limits struct {
 	reset     int
 }
 
+// PushNotificationHandlingResponse contains the response parameters from handling of the incomming push notification message
+type PushNotificationHandlingResponse struct {
+	responseCode     int     // HTTP response code
+	limits           *Limits // information about the current accounts limits
+	jsonResponseBody string  // JSON response body (if propagating from external service)
+}
+
 // IncommingPushNotificationMessageHandler handles message accepted by the REST API
 type IncommingPushNotificationMessageHandler interface {
-	HandleMessage(message PushNotification) (error, int, *Limits)
+	HandleMessage(response *PushNotificationHandlingResponse, message PushNotification) error
 }
 
 // Server is the REST API server that handles the clients connections
@@ -131,24 +138,25 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	log.Printf("Received request with %s.", pn.DumpToString())
 
 	// handle the message
-	err, responseCode, limits := h.messageHandler.HandleMessage(pn)
+	var response = PushNotificationHandlingResponse{}
+	err = h.messageHandler.HandleMessage(&response, pn)
 
 	// if the handling of the message failed
 	if err != nil {
 
 		// report the error
-		WriteErrorJSONResponse(w, 500, request, fmt.Sprintf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 500 (Internal Server Error)", pn.DumpToString(), err.Error(), responseCode))
+		WriteErrorJSONResponse(w, 500, request, fmt.Sprintf("Handling of the message %s failed with error %s, response code %d. Returning HTTP 500 (Internal Server Error)", pn.DumpToString(), err.Error(), response.responseCode))
 		return
 	}
 
 	// if limits are provided
-	if limits != nil {
+	if response.limits != nil {
 		// construct the X-Limit-App-XXX headers
-		w.Header().Set("X-Limit-App-Limit", strconv.Itoa(limits.limit))
-		w.Header().Set("X-Limit-App-Remaining", strconv.Itoa(limits.remaining))
-		w.Header().Set("X-Limit-App-Reset", strconv.Itoa(limits.reset))
+		w.Header().Set("X-Limit-App-Limit", strconv.Itoa(response.limits.limit))
+		w.Header().Set("X-Limit-App-Remaining", strconv.Itoa(response.limits.remaining))
+		w.Header().Set("X-Limit-App-Reset", strconv.Itoa(response.limits.reset))
 	}
 
 	// return the obtained response code
-	WriteSuccessJSONResponse(w, responseCode, request)
+	WriteSuccessJSONResponse(w, response.responseCode, request)
 }

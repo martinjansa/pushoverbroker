@@ -21,13 +21,15 @@ func TestShouldSendMessageToPushNotificationsSender(t *testing.T) {
 
 	// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
 	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
-	err, responseCode, _ := processor.HandleMessage(testMessage)
+
+	var response = PushNotificationHandlingResponse{}
+	err := processor.HandleMessage(&response, testMessage)
 
 	// **** THEN ****
 
 	// the request should respond correctly
 	if err != nil {
-		t.Errorf("Handling of the message failed with error %s, response code %d.", err, responseCode)
+		t.Errorf("Handling of the message failed with error %s, response code %d.", err, response.responseCode)
 		return
 	}
 
@@ -73,7 +75,8 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 			pcm.ForceResponse(nil, tc.responseStatusCode, tc.responseLimits)
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
-			err, responseCode, limits := processor.HandleMessage(testMessage)
+			var response = PushNotificationHandlingResponse{}
+			err := processor.HandleMessage(&response, testMessage)
 
 			// **** THEN ****
 
@@ -81,19 +84,19 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 			if err == nil {
 
 				// check the reseponse code
-				if responseCode != tc.responseStatusCode {
-					t.Errorf("The handling of the message returned response code %d, but expected was %d", responseCode, tc.responseStatusCode)
+				if response.responseCode != tc.responseStatusCode {
+					t.Errorf("The handling of the message returned response code %d, but expected was %d", response.responseCode, tc.responseStatusCode)
 				}
 
 			} else {
 
-				t.Errorf("Handling of the message failed with error %s, response code %d.", err, responseCode)
+				t.Errorf("Handling of the message failed with error %s, response code %d.", err, response.responseCode)
 			}
 
 			// if the limits match the expected limits
-			if limits != tc.responseLimits {
+			if response.limits != tc.responseLimits {
 
-				t.Errorf("Returned limits %s don't match the expected value %s.", limits, tc.responseLimits)
+				t.Errorf("Returned limits %s don't match the expected value %s.", response.limits, tc.responseLimits)
 			}
 		})
 	}
@@ -135,7 +138,8 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 			pcm.ForceResponse(tc.responseError, tc.responseStatusCode, tc.responseLimits)
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
-			err, responseCode, limits := processor.HandleMessage(testMessage)
+			var response = PushNotificationHandlingResponse{}
+			err := processor.HandleMessage(&response, testMessage)
 
 			// **** THEN ****
 
@@ -143,19 +147,19 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 			if err == nil {
 
 				// check the response code
-				if responseCode != 202 {
-					t.Errorf("The handling of the message returned response code %d, but expected was 202", responseCode)
+				if response.responseCode != 202 {
+					t.Errorf("The handling of the message returned response code %d, but expected was 202", response.responseCode)
 				}
 
 			} else {
 
-				t.Errorf("Handling of the message failed with error %s, response code %d.", err, responseCode)
+				t.Errorf("Handling of the message failed with error %s, response code %d.", err, response.responseCode)
 			}
 
 			// if the limits match the expected limits
-			if limits != tc.responseLimits {
+			if response.limits != tc.responseLimits {
 
-				t.Errorf("Returned limits %s don't match the expected value %s.", limits, tc.responseLimits)
+				t.Errorf("Returned limits %s don't match the expected value %s.", response.limits, tc.responseLimits)
 			}
 		})
 	}

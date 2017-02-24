@@ -26,7 +26,7 @@ func NewPushoverConnector() *PushoverConnector {
 }
 
 // PostPushNotificationMessage post a message to the Pushover server and returns error if ocurred (or nil) and response code (or 0 on POST error)
-func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotification) (error, int, *Limits) {
+func (pc *PushoverConnector) PostPushNotificationMessage(response *PushNotificationHandlingResponse, message PushNotification) error {
 
 	// encode message into the URL form values
 	form := url.Values{}
@@ -44,7 +44,9 @@ func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotificatio
 
 	resp, err := pc.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("sending the Pushover API POST request at %s with foorm \"%s\" failed with error %s", url, form, err), 0, nil
+		response.responseCode = 0
+		response.limits = nil
+		return fmt.Errorf("sending the Pushover API POST request at %s with foorm \"%s\" failed with error %s", url, form, err)
 	}
 	defer resp.Body.Close()
 
@@ -53,7 +55,9 @@ func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotificatio
 
 	// the request should respond correctly
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("processing of the Pushover API POST request at %s with form \"%s\" returned status code %d, status message %s, body \"%s\"", url, form, resp.StatusCode, resp.Status, string(body)), 0, nil
+		response.responseCode = 0
+		response.limits = nil
+		return fmt.Errorf("processing of the Pushover API POST request at %s with form \"%s\" returned status code %d, status message %s, body \"%s\"", url, form, resp.StatusCode, resp.Status, string(body))
 	}
 
 	// get the response header values
@@ -74,9 +78,10 @@ func (pc *PushoverConnector) PostPushNotificationMessage(message PushNotificatio
 	if err != nil {
 		fmt.Printf("Obtained X-Limit-App-Reset value \"%s\" failed to be converted to number with error \"%s\".", resetValue, err.Error())
 	}
-	limits := Limits{limitValueInt, remainingValueInt, resetValueInt}
+	response.limits = &Limits{limitValueInt, remainingValueInt, resetValueInt}
+	response.responseCode = 0
 
 	//t.Logf("POST request response body '%s'.", string(body))
 
-	return nil, 0, &limits
+	return nil
 }

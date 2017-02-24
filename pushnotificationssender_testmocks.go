@@ -30,10 +30,12 @@ func (pcm *PushNotificationsSenderMock) ForceResponse(responseErr error, resepon
 }
 
 // PostPushNotificationMessage receives the push notification message and returns the predefined error and response code
-func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(message PushNotification) (error, int, *Limits) {
+func (pcm *PushNotificationsSenderMock) PostPushNotificationMessage(response *PushNotificationHandlingResponse, message PushNotification) error {
 	pcm.handleMessageCalled++
 	pcm.notification = message
-	return pcm.responseErr, pcm.responseCode, pcm.limits
+	response.responseCode = pcm.responseCode
+	response.limits = pcm.limits
+	return pcm.responseErr
 }
 
 // AssertMessageAcceptedOnce checks that the message was accepted

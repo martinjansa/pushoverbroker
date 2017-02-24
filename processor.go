@@ -16,10 +16,10 @@ func NewProcessor(PushNotificationsSender PushNotificationsSender) *Processor {
 }
 
 // HandleMessage receives a message to be processed (see IncommingPushNotificationMessageHandler interface)
-func (p *Processor) HandleMessage(message PushNotification) (error, int, *Limits) {
+func (p *Processor) HandleMessage(response *PushNotificationHandlingResponse, message PushNotification) error {
 
 	// simple forward of the received message to the Pushover connector and return the result
-	responseErr, reseponseCode, limits := p.PushNotificationsSender.PostPushNotificationMessage(message)
+	responseErr := p.PushNotificationsSender.PostPushNotificationMessage(response, message)
 
 	acceptRequestToQueue := false
 
@@ -27,7 +27,7 @@ func (p *Processor) HandleMessage(message PushNotification) (error, int, *Limits
 	if responseErr == nil {
 
 		// if the response represents a temporary error and we should enqueue the message and try later
-		switch reseponseCode {
+		switch response.responseCode {
 		case
 			500, // Internal Server Error
 			504, // Gateway Timeout
@@ -50,10 +50,12 @@ func (p *Processor) HandleMessage(message PushNotification) (error, int, *Limits
 		// TODO: quing of the message and trying later should be done here!
 
 		// return HTTP error 202 (Accepted)
-		return nil, 202, nil
+		responseErr = nil
+		response.responseCode = 202
+		response.limits = nil
 	}
 
-	return responseErr, reseponseCode, limits
+	return responseErr
 }
 
 // Run starts the message processing loop

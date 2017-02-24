@@ -32,10 +32,12 @@ func NewMessageHandlerMock() *MessageHandlerMock {
 	return mh
 }
 
-func (mh *MessageHandlerMock) HandleMessage(message PushNotification) (error, int, *Limits) {
+func (mh *MessageHandlerMock) HandleMessage(response *PushNotificationHandlingResponse, message PushNotification) error {
 	mh.handleMessageCalled++
 	mh.notification = message
-	return mh.responseErr, mh.responseCode, mh.limits
+	response.limits = mh.limits
+	response.responseCode = mh.responseCode
+	return mh.responseErr
 }
 
 func (mh *MessageHandlerMock) ForceResponse(responseErr error, reseponseCode int, limits *Limits) {
