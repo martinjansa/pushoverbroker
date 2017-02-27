@@ -63,7 +63,7 @@ func TestBrokerAPI1MessageJSON(t *testing.T) {
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails with temporary server error 500
 				"ShouldReturnAcceptedOnPostError",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500, "{\"status\": 1}",
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500, "{\"status\": 0}",
 				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202, 1,
 			},
 			{
