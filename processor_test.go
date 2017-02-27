@@ -50,13 +50,13 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 		expectedResponseBodyStatus int
 	}{
 		{"ShouldPropagateSuccess200", 200, &Limits{limit: 1000, remaining: 500, reset: 123456789}, "{\"status\": 1}", 1},
-		{"ShouldPropagateError400", 400, nil, "{\"status\": 0}", 1},
-		{"ShouldPropagateError401", 401, nil, "", 1},
-		{"ShouldPropagateError402", 402, nil, "", 1},
-		{"ShouldPropagateError403", 403, nil, "", 1},
-		{"ShouldPropagateError404", 404, nil, "", 1},
-		{"ShouldPropagateError405", 405, nil, "", 1},
-		{"ShouldPropagateError426", 426, nil, "", 1},
+		{"ShouldPropagateError400", 400, nil, "{\"status\": 0}", 0},
+		{"ShouldPropagateError401", 401, nil, "", 0},
+		{"ShouldPropagateError402", 402, nil, "", 0},
+		{"ShouldPropagateError403", 403, nil, "", 0},
+		{"ShouldPropagateError404", 404, nil, "", 0},
+		{"ShouldPropagateError405", 405, nil, "", 0},
+		{"ShouldPropagateError426", 426, nil, "", 0},
 	}
 	// **** GIVEN ****
 
