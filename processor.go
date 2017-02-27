@@ -27,13 +27,23 @@ func (p *Processor) HandleMessage(response *PushNotificationHandlingResponse, me
 	if responseErr == nil {
 
 		// if the response represents a temporary error and we should enqueue the message and try later
-		switch response.responseCode {
+		switch {
+		case response.responseCode >= 100 && response.responseCode < 300: // success codes
+			break
+
 		case
-			500, // Internal Server Error
-			504, // Gateway Timeout
-			598, // Network Read Timeout
-			599: // Network Timeout
+			response.responseCode == 500, // Internal Server Error
+			response.responseCode == 504, // Gateway Timeout
+			response.responseCode == 598, // Network Read Timeout
+			response.responseCode == 599: // Network Timeout
 			acceptRequestToQueue = true
+			break
+
+		default: // all other failures
+			// always generate a status=0 response
+			response.jsonResponseBody = "{\"status\": 0 }"
+			break
+
 		}
 
 	} else {
@@ -53,6 +63,7 @@ func (p *Processor) HandleMessage(response *PushNotificationHandlingResponse, me
 		responseErr = nil
 		response.responseCode = 202
 		response.limits = nil
+		response.jsonResponseBody = "{\"status\": 1 }"
 	}
 
 	return responseErr

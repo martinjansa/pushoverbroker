@@ -74,24 +74,24 @@ type Post1MessageJSONHTTPHandler struct {
 	decoder        *schema.Decoder
 }
 
-// WriteSuccessJSONResponse writes the response header and JSON body
-func WriteSuccessJSONResponse(w http.ResponseWriter, responseCode int, request string) {
-	responseBody := fmt.Sprintf("{\"status\": 1, \"request\": \"%s\"}", request)
+// WriteJSONResponse writes the response header and JSON body
+func WriteJSONResponse(w http.ResponseWriter, responseCode int, responseBody string) {
 	log.Printf("Writing response with status code %d and body %s.", responseCode, responseBody)
-
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(responseCode)
 	w.Write([]byte(responseBody))
 }
 
+// WriteSuccessJSONResponse writes the response header and JSON body
+func WriteSuccessJSONResponse(w http.ResponseWriter, responseCode int, request string) {
+	responseBody := fmt.Sprintf("{\"status\": 1, \"request\": \"%s\"}", request)
+	WriteJSONResponse(w, responseCode, responseBody)
+}
+
 // WriteErrorJSONResponse writes the response header and JSON body with error string
 func WriteErrorJSONResponse(w http.ResponseWriter, responseCode int, request string, errorStr string) {
 	responseBody := fmt.Sprintf("{\"status\": 0, \"request\": \"%s\", \"errors\":[\"%s\"]}", request, errorStr)
-	log.Printf("Writing response with status code %d and body %s.", responseCode, responseBody)
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(responseCode)
-	w.Write([]byte(responseBody))
+	WriteJSONResponse(w, responseCode, responseBody)
 }
 
 // handles the incomming request and forwards it to the message handler
@@ -157,6 +157,6 @@ func (h *Post1MessageJSONHTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		w.Header().Set("X-Limit-App-Reset", strconv.Itoa(response.limits.reset))
 	}
 
-	// return the obtained response code
-	WriteSuccessJSONResponse(w, response.responseCode, request)
+	// return the obtained response code and body
+	WriteJSONResponse(w, response.responseCode, response.jsonResponseBody)
 }
