@@ -16,7 +16,7 @@ import (
 )
 
 // TestAPI1MessageJSON is a test function for the REST API call
-func TestAPI1MessageJSON(t *testing.T) {
+func TestBrokerAPI1MessageJSON(t *testing.T) {
 
 	// **** GIVEN ****
 
@@ -43,6 +43,7 @@ func TestAPI1MessageJSON(t *testing.T) {
 			urlValues                  map[string]string
 			responseErr                error
 			responseStatusCode         int
+			responseBody               string
 			expectedMessage            PushNotification
 			expectedStatusCode         int
 			expectedResponseBodyStatus int
@@ -50,25 +51,25 @@ func TestAPI1MessageJSON(t *testing.T) {
 			{
 				// checks that the success result is propagated if a call to push notification sender succeeds
 				"ShouldReturnSuccessFromExternalAPI",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 200,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 200, "{\"status\": 1}",
 				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 200, 1,
 			},
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails
 				"ShouldReturnAcceptedOnPostError",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, errors.New("posting failed, no internet"), 0,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, errors.New("posting failed, no internet"), 0, "{\"status\": 1}",
 				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202, 1,
 			},
 			{
 				// checks that the success result 202 Accepted is returned if an attempt to push notification sender fails with temporary server error 500
 				"ShouldReturnAcceptedOnPostError",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 500, "{\"status\": 1}",
 				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 202, 1,
 			},
 			{
 				// checks that the success result 400 (Bad Request) is returned if the push notification sender API calls returns this status code
 				"ShouldReturnBadRequestFromExternalAPI",
-				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 400,
+				map[string]string{"token": "<dummy token>", "user": "<dummy user>", "message": "<dummy message>"}, nil, 400, "{\"status\": 0}",
 				PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: "<dummy message>"}, 400, 0,
 			},
 		}
@@ -98,7 +99,7 @@ func TestAPI1MessageJSON(t *testing.T) {
 				client := &http.Client{Transport: transport}
 
 				// force the moct to fail the posting of the push notification message
-				pcm.ForceResponse(tc.responseErr, tc.responseStatusCode, &Limits{limit: 10000, remaining: 10, reset: 12345})
+				pcm.ForceResponse(tc.responseErr, tc.responseStatusCode, &Limits{limit: 10000, remaining: 10, reset: 12345}, tc.responseBody)
 
 				// post the request
 				resp, err := client.Do(req)
@@ -190,7 +191,7 @@ func TestAPI1MessageJSON(t *testing.T) {
 				client := &http.Client{Transport: transport}
 
 				// force the moct to fail the posting of the push notification message
-				pcm.ForceResponse(tc.responseErr, tc.responseStatusCode, tc.limits)
+				pcm.ForceResponse(tc.responseErr, tc.responseStatusCode, tc.limits, "{\"status\": 1}")
 
 				// post the request
 				resp, err := client.Do(req)

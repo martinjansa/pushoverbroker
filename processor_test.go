@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -41,18 +43,20 @@ func TestShouldSendMessageToPushNotificationsSender(t *testing.T) {
 func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 
 	var testcases = []struct {
-		id                 string
-		responseStatusCode int
-		responseLimits     *Limits
+		id                         string
+		responseStatusCode         int
+		responseLimits             *Limits
+		responseBody               string
+		expectedResponseBodyStatus int
 	}{
-		{"ShouldPropagateSuccess200", 200, &Limits{limit: 1000, remaining: 500, reset: 123456789}},
-		{"ShouldPropagateError400", 400, nil},
-		{"ShouldPropagateError401", 401, nil},
-		{"ShouldPropagateError402", 402, nil},
-		{"ShouldPropagateError403", 403, nil},
-		{"ShouldPropagateError404", 404, nil},
-		{"ShouldPropagateError405", 405, nil},
-		{"ShouldPropagateError426", 426, nil},
+		{"ShouldPropagateSuccess200", 200, &Limits{limit: 1000, remaining: 500, reset: 123456789}, "{\"status\": 1}", 1},
+		{"ShouldPropagateError400", 400, nil, "{\"status\": 0}", 1},
+		{"ShouldPropagateError401", 401, nil, "", 1},
+		{"ShouldPropagateError402", 402, nil, "", 1},
+		{"ShouldPropagateError403", 403, nil, "", 1},
+		{"ShouldPropagateError404", 404, nil, "", 1},
+		{"ShouldPropagateError405", 405, nil, "", 1},
+		{"ShouldPropagateError426", 426, nil, "", 1},
 	}
 	// **** GIVEN ****
 
@@ -72,7 +76,7 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 			// **** WHEN ****
 
 			// set the response in the mock
-			pcm.ForceResponse(nil, tc.responseStatusCode, tc.responseLimits)
+			pcm.ForceResponse(nil, tc.responseStatusCode, tc.responseLimits, tc.responseBody)
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
 			var response = PushNotificationHandlingResponse{}
@@ -97,6 +101,24 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 			if response.limits != tc.responseLimits {
 
 				t.Errorf("Returned limits %s don't match the expected value %s.", response.limits, tc.responseLimits)
+			}
+
+			// get the content of the body
+			type ResponseJSONBodyContent struct {
+				Status  int    `json:"status"`
+				Request string `json:"request"`
+			}
+			var responseJSONBodyContent = ResponseJSONBodyContent{0, ""}
+			err = json.NewDecoder(strings.NewReader(response.jsonResponseBody)).Decode(&responseJSONBodyContent)
+			if err != nil {
+				t.Errorf("POST request returned JSON \"%s\", which failed to decode with error %s.", response.jsonResponseBody, err.Error())
+				return
+			}
+
+			// check the status value
+			if responseJSONBodyContent.Status != tc.expectedResponseBodyStatus {
+				t.Errorf("POST request returned JSON with status %d, expected status was %d.", responseJSONBodyContent.Status, tc.expectedResponseBodyStatus)
+				return
 			}
 		})
 	}
@@ -135,7 +157,7 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 			// **** WHEN ****
 
 			// set the response in the mock
-			pcm.ForceResponse(tc.responseError, tc.responseStatusCode, tc.responseLimits)
+			pcm.ForceResponse(tc.responseError, tc.responseStatusCode, tc.responseLimits, "{\"status\": 1}")
 
 			// a push notification is obtained by the process (via IncommingPushNotificationMessageHandler interface method HandleMessage())
 			var response = PushNotificationHandlingResponse{}
