@@ -35,15 +35,19 @@ func (l *LimitsCounterImpl) DecrementLimits(accountToken string) error {
 	// seach the account in the map
 	limits, exists := l.limitsCache[accountToken]
 	if !exists {
-		return errors.New("the requested account does not exist in the cache")
+		// ignore the error in here
+		return nil
 	}
 
-	// if there are still some remaining messages in the limits
-	if limits.remaining > 0 {
+	// if there areno longer remaining messages in the limits
+	if limits.remaining == 0 {
 
-		// decrement the limits
-		limits.remaining--
+		// return error
+		return errors.New("the is no remaining message in the accounts limits")
 	}
+
+	// decrement the limits
+	limits.remaining--
 
 	return nil
 }

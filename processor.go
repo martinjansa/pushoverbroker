@@ -1,17 +1,20 @@
 package main
 
 import "log"
+import "net/http"
+import "fmt"
 
 // Processor handles the incomming messages, is responsible for the queing, persinstence and repeated attempts to deliver
 type Processor struct {
 	PushNotificationsSender PushNotificationsSender
+	LimitsCounter           LimitsCounter
 }
 
 // NewProcessor creates a new instance of the Processor
-func NewProcessor(PushNotificationsSender PushNotificationsSender) *Processor {
+func NewProcessor(PushNotificationsSender PushNotificationsSender, LimitsCounter LimitsCounter) *Processor {
 	p := new(Processor)
 	p.PushNotificationsSender = PushNotificationsSender
-
+	p.LimitsCounter = LimitsCounter
 	return p
 }
 
@@ -29,6 +32,8 @@ func (p *Processor) HandleMessage(response *PushNotificationHandlingResponse, me
 		// if the response represents a temporary error and we should enqueue the message and try later
 		switch {
 		case response.responseCode >= 100 && response.responseCode < 300: // success codes
+			// store the currnt limits into the cache
+			p.LimitsCounter.SetLimits(message.GetToken(), response.limits)
 			break
 
 		case
@@ -57,13 +62,26 @@ func (p *Processor) HandleMessage(response *PushNotificationHandlingResponse, me
 	// if the message should be accepted to queue
 	if acceptRequestToQueue {
 
-		// TODO: quing of the message and trying later should be done here!
+		// decrement the limits for the current message
+		err := p.LimitsCounter.DecrementLimits(message.GetToken())
 
-		// return HTTP error 202 (Accepted)
-		responseErr = nil
-		response.responseCode = 202
-		response.limits = nil
-		response.jsonResponseBody = "{\"status\": 1 }"
+		// if succeeded
+		if err == nil {
+
+			// TODO: queing of the message and trying later should be done here!
+
+			// return HTTP error 202 (Accepted)
+			responseErr = nil
+			response.responseCode = http.StatusAccepted
+			response.limits, _ = p.LimitsCounter.GetLimits(message.GetToken())
+			response.jsonResponseBody = "{\"status\": 1 }"
+
+		} else {
+			// return the not permited reponse
+			response.responseCode = http.StatusForbidden
+			response.limits, _ = p.LimitsCounter.GetLimits(message.GetToken())
+			response.jsonResponseBody = fmt.Sprintf("{\"status\": 0, \"errors\": [\"%s\"] }", err.Error())
+		}
 	}
 
 	return responseErr

@@ -14,7 +14,7 @@ func NewPushoverBroker(port int, certFilePath string, keyFilePath string, PushNo
 	pb.PushNotificationsSender = PushNotificationsSender
 
 	// create new message processor
-	pb.processor = NewProcessor(PushNotificationsSender)
+	pb.processor = NewProcessor(PushNotificationsSender, NewLimitsCounterImpl())
 
 	// create new HTTP server
 	pb.server = NewServer(port, certFilePath, keyFilePath, pb.processor)

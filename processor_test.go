@@ -14,7 +14,7 @@ func TestShouldSendMessageToPushNotificationsSender(t *testing.T) {
 
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := NewPushNotificationsSenderMock()
-	processor := NewProcessor(pcm)
+	processor := NewProcessor(pcm, NewLimitsCounterImpl())
 
 	// start the processor
 	go processor.Run()
@@ -62,7 +62,7 @@ func TestShouldPropagateSuccessOrPermanentFailureResponses(t *testing.T) {
 
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := NewPushNotificationsSenderMock()
-	processor := NewProcessor(pcm)
+	processor := NewProcessor(pcm, NewLimitsCounterImpl())
 
 	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
 
@@ -143,7 +143,7 @@ func TestShouldReturn202AcceptedOnTemporaryFailure(t *testing.T) {
 
 	// The REST API server is initialized and connected to the message handler mock
 	pcm := NewPushNotificationsSenderMock()
-	processor := NewProcessor(pcm)
+	processor := NewProcessor(pcm, NewLimitsCounterImpl())
 
 	testMessage := PushNotification{Token: "<dummy token>", User: "<dummy user>", Message: ""}
 

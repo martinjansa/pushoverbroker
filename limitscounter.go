@@ -10,5 +10,5 @@ type LimitsCounter interface {
 	DecrementLimits(accountToken string) error
 
 	// GetLimits returns the current limits or nil, if not known yet
-	GetLimits(accountToken string) *Limits
+	GetLimits(accountToken string) (*Limits, error)
 }
