@@ -80,6 +80,7 @@ func (pc *PushoverConnector) PostPushNotificationMessage(response *PushNotificat
 	}
 	response.limits = &Limits{limitValueInt, remainingValueInt, resetValueInt}
 	response.responseCode = 0
+	response.jsonResponseBody = string(body)
 
 	//t.Logf("POST request response body '%s'.", string(body))
 
