@@ -163,6 +163,8 @@ func TestBrokerAPI1MessageJSON(t *testing.T) {
 			expectedReset      string
 		}{
 			{"ShouldReturnLimitsOnSuccess200", nil, 200, &Limits{limit: 1000, remaining: 500, reset: 123456789}, true, "1000", "500", "123456789"},
+			{"ShouldReturnDecrementedLimitsOnOffline", errors.New("offline"), 0, nil, true, "1000", "499", "123456789"},
+			{"ShouldReturnDecrementedLimitsOnOffline2", errors.New("offline"), 0, nil, true, "1000", "498", "123456789"},
 			{"ShouldReturnLimitsOnFailure400", nil, 400, nil, false, "", "", ""},
 		}
 
