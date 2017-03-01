@@ -70,8 +70,8 @@ func TestLimitsCounterShouldGiveDecrementedValuesOnCachedAccount(t *testing.T) {
 		t.Errorf("No limits returned, expected value.")
 		return
 	}
-	if limits.limit != 1000 || limits.remaining != 500 || limits.reset != 123456789 {
-		t.Errorf("Limits {%d, %d, %d} returned, expected {%d, %d, %d}.", limits.limit, limits.remaining, limits.reset, 1000, 500, 123456789)
+	if limits.limit != 1000 || limits.remaining != 499 || limits.reset != 123456789 {
+		t.Errorf("Limits {%d, %d, %d} returned, expected {%d, %d, %d}.", limits.limit, limits.remaining, limits.reset, 1000, 499, 123456789)
 		return
 	}
 
