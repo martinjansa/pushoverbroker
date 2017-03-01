@@ -20,7 +20,7 @@ func (l *LimitsCounterImpl) DecrementLimits(accountToken string) error {
 
 // GetLimits returns the current limits or nil, if not known yet
 func (l *LimitsCounterImpl) GetLimits(accountToken string) (*Limits, error) {
-	return nil, errors.New("not implemented")
+	return nil, nil
 }
 
 func NewLimitsCounterImpl() *LimitsCounterImpl {
